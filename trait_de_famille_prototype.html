@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr" class="">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trait de Famille - Prototype</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&family=Caveat:wght@400..700&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#7b61ff",
+                        "primary-fixed": "#e5deff",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#7459f7",
+                        "on-primary-container": "#fffbff",
+                        surface: "#fdf7ff",
+                        "on-surface": "#1e192b",
+                        "surface-variant": "#e8def9",
+                        "on-surface-variant": "#484555",
+                        "surface-container": "#f3eaff",
+                        "surface-container-low": "#f8f1ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e8def9",
+                        "inverse-surface": "#332d41",
+                        "inverse-on-surface": "#f5eeff",
+                        "secondary-container": "#fd9d1a",
+                        "on-secondary-fixed": "#2c1700",
+                        tertiary: "#ae1b63",
+                        "tertiary-container": "#cf397c",
+                        "outline": "#797587",
+                        "outline-variant": "#c9c4d8",
+                        background: "#fdf7ff",
+                        "on-background": "#1e192b",
+                    },
+                    fontFamily: {
+                        sans: ['Public Sans', 'sans-serif'],
+                        "label-sm": ["Public Sans"],
+                        "body-md": ["Public Sans"],
+                        "annotation": ["Caveat"],
+                        "headline-md": ["\"Baloo 2\""],
+                        "body-lg": ["Public Sans"],
+                        "display-lg": ["\"Baloo 2\""],
+                        "headline-lg": ["\"Baloo 2\""],
+                        baloo: ["\"Baloo 2\""],
+                    },
+                    borderRadius: {
+                        "md": "0.375rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "2xl": "20px"
+                    },
+                    spacing: {
+                        "xl": "80px",
+                        "xs": "4px",
+                        "container-max": "1280px",
+                        "sm": "12px",
+                        "lg": "48px",
+                        "base": "8px",
+                        "md": "24px"
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .gribouillis-bg {
+            background-image: radial-gradient(var(--tw-colors-primary-fixed) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .sticker-btn {
+            box-shadow: inset 0 0 0 2px white, 0 4px 0 0 rgba(123, 97, 255, 0.15);
+            transition: all 0.2s ease;
+        }
+        .sticker-btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: inset 0 0 0 2px white, 0 6px 0 0 rgba(123, 97, 255, 0.25);
+        }
+        .dropzone {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='20' ry='20' stroke='%23201B2E' stroke-width='4' stroke-dasharray='8%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .card-border, .gribouillis-border, .line-art-card {
+            border: 2px solid #201B2E;
+        }
+        .split-slider {
+            position: absolute; top: 0; bottom: 0; width: 4px; background: #201B2E; left: 50%; cursor: ew-resize; z-index: 10;
+        }
+        .split-handle {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; background: #ffffff; border: 2px solid #201B2E; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        .confetti {
+            position: fixed; width: 10px; height: 10px; top: -10px; z-index: -1; animation: fall linear infinite;
+        }
+    </style>
+    <!-- React & React Router DOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/history@5/umd/history.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+<body class="bg-background text-on-surface font-sans min-h-screen flex flex-col antialiased">
+    <div id="root" class="flex flex-col min-h-screen"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+        const { MemoryRouter, Routes, Route, Link, useNavigate } = ReactRouterDOM;
+
+        // --- Shared Components ---
+
+        const Header = ({ showNav = true }) => (
+            <nav className="bg-surface w-full top-0 sticky border-b-2 border-on-surface shadow-[0_4px_0_0_rgba(123,97,255,0.15)] z-50">
+                <div className="flex justify-between items-center h-20 px-md md:px-lg max-w-container-max mx-auto">
+                    <Link to="/" className="font-headline-md text-headline-md text-on-surface flex items-center gap-2 hover:scale-105 transition-transform duration-200">
+                        <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>draw</span>
+                        <span className="font-baloo font-bold">Trait de Famille</span>
+                    </Link>
+                    {showNav && (
+                        <>
+                            <div className="hidden md:flex items-center gap-lg font-body-lg">
+                                <Link to="/" className="text-on-surface-variant hover:text-primary transition-colors hover:scale-105 duration-200">Exemples</Link>
+                                <Link to="/" className="text-on-surface-variant hover:text-primary transition-colors hover:scale-105 duration-200">Tarifs</Link>
+                                <Link to="/mes-coloriages" className="text-on-surface-variant hover:text-primary transition-colors hover:scale-105 duration-200 border-b-2 border-transparent hover:border-primary">Mon Compte</Link>
+                            </div>
+                            <div className="flex items-center gap-sm">
+                                <Link to="/upload" className="sticker-btn bg-primary text-on-primary font-bold py-2 px-4 rounded-full flex items-center gap-2">
+                                    <span className="material-symbols-outlined">edit</span> Créer
+                                </Link>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </nav>
+        );
+
+        const MinimalHeader = ({ backTo = "/" }) => (
+            <header className="w-full flex items-center justify-between px-md md:px-lg h-20 max-w-container-max mx-auto shrink-0 relative z-10 border-b-2 border-on-surface">
+                <Link to={backTo} className="flex items-center gap-base text-on-surface hover:text-primary transition-colors group">
+                    <span className="material-symbols-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                    <span className="font-label-sm hidden md:inline">Retour</span>
+                </Link>
+                <div className="font-headline-md font-bold absolute left-1/2 -translate-x-1/2 text-on-surface flex items-center gap-2">
+                     <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>draw</span>
+                     Trait de Famille
+                </div>
+                <div className="w-[72px]"></div>
+            </header>
+        );
+
+        const Footer = () => (
+            <footer className="bg-surface-container w-full mt-auto border-t-2 border-on-surface py-lg px-md">
+                <div className="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-md">
+                    <div className="font-headline-sm font-bold flex items-center gap-2">
+                        Trait de Famille
+                    </div>
+                    <div className="font-label-sm text-center md:text-left">
+                        © 2024 Trait de Famille.
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-md font-label-sm">
+                        <a className="text-on-surface-variant hover:text-primary" href="#">Mentions</a>
+                        <a className="text-on-surface-variant hover:text-primary" href="#">Contact</a>
+                    </div>
+                </div>
+            </footer>
+        );
+
+        // --- Pages ---
+
+        const HomePage = () => {
+            return (
+                <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-grow">
+                        <section className="relative pt-xl pb-lg px-md max-w-container-max mx-auto flex flex-col lg:flex-row gap-xl items-center">
+                            <div className="space-y-6 flex-1">
+                                <h1 className="font-baloo text-display-lg font-bold leading-tight relative inline-block">
+                                    Transforme tes photos en coloriages.
+                                </h1>
+                                <p className="font-body-lg text-on-surface-variant max-w-lg">
+                                    Envoie une photo de famille, on la transforme en dessin au trait prêt à colorier.
+                                </p>
+                                <Link to="/upload" className="sticker-btn bg-primary text-on-primary py-3 px-6 rounded-full inline-flex items-center gap-2 font-bold text-lg">
+                                    Créer mon coloriage <span className="material-symbols-outlined">palette</span>
+                                </Link>
+                            </div>
+                            <div className="flex-1 w-full max-w-md aspect-square rounded-[20px] gribouillis-border p-2 rotate-1 bg-white relative overflow-hidden">
+                                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc4KLAiaMFZEhV0CIOKSXuo-5iRY0DwH_h11ivLO43pDH8d6_T-xcS6kQLEvjEcIKR_qsMhyxO9O7EFKE7YUJRHXPbe4Aau8xU2MsyDgzB7paTnd4JCnOtgihIJWm3-XhMytqo0QiUJJuwgVHf3ipqsXWrPhKhOzbd7g9aAT8S3i4wbEmAJfQIYvtvQFBpUqev9g5qiqPYKrw6QCqLD7xmb_o4wnMacBx5ordl8zPLt3IYpH7HfhJY" className="w-full h-full object-cover" alt="Preview" />
+                            </div>
+                        </section>
+                    </main>
+                    <Footer />
+                </div>
+            );
+        };
+
+        const UploadPage = () => {
+            const navigate = useNavigate();
+            const [file, setFile] = useState(null);
+
+            const handleFile = (e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                    setFile(e.target.files[0]);
+                }
+            };
+
+            const handleSubmit = () => {
+                if (file) navigate('/preview');
+            };
+
+            return (
+                <div className="flex flex-col min-h-screen bg-background">
+                    <MinimalHeader backTo="/" />
+                    <main className="flex-grow flex items-center justify-center p-md gribouillis-bg relative">
+                        <div className="w-full max-w-[600px] bg-white card-border rounded-[20px] p-lg z-10 text-center">
+                            <h1 className="font-display-lg mb-sm">Ajoute ta photo</h1>
+                            <label className="dropzone w-full h-[240px] flex flex-col items-center justify-center cursor-pointer mb-lg block relative">
+                                <input type="file" className="hidden" onChange={handleFile} accept="image/*" />
+                                <span className="material-symbols-outlined text-4xl text-primary mb-2">cloud_upload</span>
+                                <span className="font-bold">{file ? file.name : "Glisse ta photo ici"}</span>
+                            </label>
+                            <button 
+                                onClick={handleSubmit} 
+                                disabled={!file} 
+                                className="w-full bg-primary text-white py-3 rounded-full font-bold sticker-btn disabled:opacity-50 flex items-center justify-center gap-2">
+                                Transformer <span className="material-symbols-outlined">auto_fix_high</span>
+                            </button>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const PreviewPage = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="flex flex-col min-h-screen">
+                    <MinimalHeader backTo="/upload" />
+                    <main className="flex-grow max-w-container-max mx-auto px-md py-lg flex flex-col lg:flex-row gap-lg w-full">
+                        <div className="flex-1 flex flex-col gap-md">
+                            <h1 className="font-display-lg">Voilà ton coloriage ✨</h1>
+                            <div className="relative w-full aspect-square border-2 border-on-surface rounded-xl overflow-hidden bg-white">
+                                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvyhLstqv_f4cH0niHNh8FTInEvSRUz5AWkf8j5-eZnDYx2iCpKu2HsW-cAgmOhOM32-tWFDpcqqszSgLO0Ar_8oc1EfdAFS-Lxl_ruRpqTbN9nDuIibxY2_tTuycHHKZ9iCxIecmH_a1AWxlICeKUCYoX6Ciayf8j4XJMazRtKajBuvjt4A2_U8we2cHgSc__jLrGSedSa6mZgt6gxEywBhfucCbxSO81jKOxy-cV_axYXmDdWcIk" className="w-full h-full object-contain opacity-50" />
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <span className="font-display-lg uppercase text-on-surface opacity-30 -rotate-12 border-4 p-2">Aperçu</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="w-full lg:w-[400px] flex flex-col gap-md">
+                            <div className="bg-white border-2 border-on-surface rounded-xl p-md">
+                                <h3 className="font-bold mb-4 flex items-center gap-2"><span className="material-symbols-outlined">settings</span> Réglages</h3>
+                                <div className="space-y-4">
+                                     <div className="h-10 bg-surface-variant rounded flex items-center justify-center">Options (Mock)</div>
+                                </div>
+                            </div>
+                            <button onClick={() => navigate('/paywall')} className="w-full bg-primary text-white py-4 rounded-full font-bold sticker-btn flex items-center justify-center gap-2 text-lg">
+                                <span className="material-symbols-outlined">lock_open</span> Débloquer en HD — 2,99 €
+                            </button>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const PaywallPage = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="flex flex-col min-h-screen bg-background items-center py-12 px-4">
+                    <MinimalHeader backTo="/preview" />
+                    <div className="w-full max-w-4xl bg-white border-2 border-[#201B2E] rounded-2xl p-8 mt-8 text-center">
+                        <h1 className="font-display-lg mb-8">Débloque ton coloriage</h1>
+                        <div className="grid md:grid-cols-3 gap-6 mb-8">
+                            <div className="border-2 border-on-surface rounded-xl p-6 hover:bg-primary-fixed cursor-pointer">1 coloriage - 2,99€</div>
+                            <div className="border-2 border-primary bg-primary-container rounded-xl p-6 text-white cursor-pointer relative">
+                                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary-container text-black px-2 rounded-full text-xs">Meilleur prix</span>
+                                Pack 10 - 14,99€
+                            </div>
+                            <div className="border-2 border-on-surface rounded-xl p-6 hover:bg-primary-fixed cursor-pointer">Pack 3 - 6,99€</div>
+                        </div>
+                        <button onClick={() => navigate('/success')} className="bg-primary text-white py-4 px-8 rounded-full font-bold sticker-btn text-lg w-full max-w-md mx-auto">
+                            Payer (Demo)
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const SuccessPage = () => {
+            const navigate = useNavigate();
+            useEffect(() => {
+                // Confetti mock
+            }, []);
+            return (
+                <div className="flex flex-col min-h-screen bg-background">
+                     <Header showNav={false} />
+                     <main className="flex-grow flex flex-col items-center justify-center p-lg text-center relative overflow-hidden">
+                        <h1 className="font-display-lg mb-4">C'est prêt ! 🎉</h1>
+                        <div className="w-64 aspect-[3/4] border-2 border-on-surface rounded-lg overflow-hidden bg-white mb-8 rotate-[-2deg] p-2">
+                             <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8bG7C0HSEfQfkTjw1zJxfCh3ovnRMOP34nNLQLxNgvAfw1kkyfiblTdvtuHYcgXU74xDLjABkbfit4dn4sJnuf_6l9GSiI6vAbKtrvRh0LjKdXLo2N9EkSDddirVzrZFDrVeILS8ynf36kjqrdUrCCD-ALc1RGXjc_x1D0-sTEGSp2yv4OioNrLgVvD_ONS_ocg1hKzOvq7dA5jx9kPGs8zWQOI0rH4UZdpYE9k6v-9ojDhJGyy66" className="w-full h-full object-cover grayscale" />
+                        </div>
+                        <div className="flex gap-4">
+                            <button className="bg-primary text-white py-3 px-6 rounded-full font-bold sticker-btn flex items-center gap-2">
+                                <span className="material-symbols-outlined">download</span> Télécharger
+                            </button>
+                            <button onClick={() => navigate('/mes-coloriages')} className="border-2 border-on-surface py-3 px-6 rounded-full font-bold hover:bg-surface-variant">
+                                Ma Galerie
+                            </button>
+                        </div>
+                     </main>
+                </div>
+            );
+        };
+
+        const GalleryPage = () => {
+            return (
+                <div className="flex flex-col min-h-screen bg-surface">
+                    <Header />
+                    <main className="flex-grow max-w-container-max mx-auto px-md py-lg w-full">
+                        <div className="flex justify-between items-end mb-8">
+                            <h1 className="font-display-lg">Mes coloriages</h1>
+                            <Link to="/upload" className="sticker-btn bg-primary text-white px-4 py-2 rounded-full font-bold">Nouveau</Link>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {[1,2,3].map(i => (
+                                <div key={i} className="bg-white rounded-xl p-4 border-2 border-on-surface line-art-card flex flex-col gap-2">
+                                    <div className="aspect-square bg-surface-variant rounded border-2 border-outline-variant overflow-hidden">
+                                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAS9zfuYDvmY5fgCHdt2alz6XGE3aAr6e7emXWi86p_BaJhy8i0jbXI5h7ClXjiSoTbOYMPnpnW3xj1Xw9l9TiRTb4JUNtjCGLVRXIIhD4SL_-xfr75kR0v6JIQxbRmOTAlMHs6C3seHqmNN3jL6jDh4ufVfj9k8PeJgumrwxnDdgH2PjjE6_pDaR8Cd7c6fw5ndIo6BCkKj7r13a03RRY4P6rfguihFi7hnCGhfU2MMqjRfybJdLoV" className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="font-bold">Coloriage {i}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </main>
+                    <Footer />
+                </div>
+            );
+        };
+
+        // --- App Wrapper ---
+        const App = () => {
+            return (
+                <MemoryRouter>
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/upload" element={<UploadPage />} />
+                        <Route path="/preview" element={<PreviewPage />} />
+                        <Route path="/paywall" element={<PaywallPage />} />
+                        <Route path="/success" element={<SuccessPage />} />
+                        <Route path="/mes-coloriages" element={<GalleryPage />} />
+                    </Routes>
+                </MemoryRouter>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
