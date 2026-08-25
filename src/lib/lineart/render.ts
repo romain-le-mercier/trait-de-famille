@@ -54,8 +54,17 @@ export async function renderLineArt({
   onProgress?.(0.75);
 
   if (!response.ok) {
+    // Nos propres erreurs sont toujours du JSON avec un `message`. Si le corps
+    // n'en est pas, la réponse ne vient pas de l'app mais de ce qui est devant
+    // (proxy, passerelle) : on garde le code HTTP, sinon la panne est
+    // indiagnosticable depuis le navigateur.
     const detail = await response.json().catch(() => null);
-    throw new Error(detail?.message ?? "La génération a échoué.");
+    if (detail?.message) throw new Error(detail.message);
+    throw new Error(
+      response.status === 504 || response.status === 524
+        ? `Le dessin a mis trop de temps à revenir (erreur ${response.status}). Réessaie.`
+        : `La génération a échoué (erreur ${response.status}).`,
+    );
   }
 
   const blob = await response.blob();

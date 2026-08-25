@@ -69,10 +69,20 @@ export async function POST(request: Request) {
     .filter(Boolean)
     .join(" ");
 
+  const startedAt = Date.now();
   try {
     const bytes = Buffer.from(await photo.arrayBuffer());
     const mimeType = photo.type || "image/jpeg";
     const result = await runLiteLLM(bytes, mimeType, prompt);
+
+    // Cette ligne est la seule preuve, côté serveur, qu'une génération est
+    // allée au bout. Si elle manque alors que le proxy a facturé l'appel,
+    // c'est que la réponse n'a jamais quitté le conteneur.
+    console.log(
+      `[generate] ok en ${((Date.now() - startedAt) / 1000).toFixed(1)}s ` +
+        `· envoi ${Math.round(bytes.length / 1024)} Ko ` +
+        `· retour ${Math.round(result.data.byteLength / 1024)} Ko`,
+    );
 
     return new NextResponse(new Uint8Array(result.data), {
       headers: {
@@ -81,7 +91,10 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error("[generate]", error);
+    console.error(
+      `[generate] échec après ${((Date.now() - startedAt) / 1000).toFixed(1)}s`,
+      error,
+    );
     return NextResponse.json(
       {
         message:
