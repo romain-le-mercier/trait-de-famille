@@ -11,14 +11,13 @@ import {
   LogIn,
   ShieldCheck,
   TriangleAlert,
-  Zap,
 } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { IncludedList } from "@/components/marketing/Pricing";
 import { cx } from "@/lib/cx";
 import { DEFAULT_PACK_ID, formatPrice, getPack, PACKS, unitPrice } from "@/lib/pricing";
-import { useAccount, useAppStore } from "@/lib/store";
+import { useAccount } from "@/lib/store";
 
 interface StripeStatus {
   enabled: boolean;
@@ -29,7 +28,6 @@ export function PaywallFlow() {
   const router = useRouter();
   const params = useSearchParams();
   const account = useAccount();
-  const setCredits = useAppStore((s) => s.setCredits);
 
   const requested = params.get("pack");
   const cancelled = params.get("annule") === "1";
@@ -67,7 +65,9 @@ export function PaywallFlow() {
         return;
       }
       if (!response.ok || !data?.url) {
-        if (data?.demo) setStripe({ enabled: false, mode: null });
+        // Stripe a pu être retiré depuis le chargement de la page : on
+        // rebascule l'affichage sur l'état « paiement indisponible ».
+        if (data?.stripeMissing) setStripe({ enabled: false, mode: null });
         throw new Error(data?.message ?? "Le paiement n'a pas pu démarrer.");
       }
       window.location.href = data.url as string;
@@ -75,11 +75,6 @@ export function PaywallFlow() {
       setError(caught instanceof Error ? caught.message : "Paiement indisponible.");
       setBusy(false);
     }
-  };
-
-  const grantDemo = () => {
-    setCredits(account.credits + pack.credits);
-    router.push("/merci?demo=1");
   };
 
   return (
@@ -192,18 +187,19 @@ export function PaywallFlow() {
         ) : stripe?.enabled === false ? (
           <Card tone="soft" className="mt-6 bg-tangerine-soft p-5">
             <p className="flex items-center gap-2 font-bold">
-              <Info className="h-4 w-4" strokeWidth={2.2} />
-              Mode démo — Stripe n&apos;est pas branché
+              <TriangleAlert className="h-4 w-4" strokeWidth={2.2} />
+              Paiement indisponible
             </p>
             <p className="mt-2 text-sm text-muted">
-              Renseigne <code className="font-mono">STRIPE_SECRET_KEY</code> pour
-              activer le vrai paiement. En attendant, tu peux simuler l&apos;ajout
-              de crédits (côté navigateur uniquement, non persisté).
+              Le paiement n&apos;est pas configuré sur ce serveur. Ton aperçu
+              reste accessible, mais aucun coloriage ne peut être débloqué pour
+              l&apos;instant.
             </p>
-            <Button variant="ink" full className="mt-4" onClick={grantDemo}>
-              <Zap className="h-4 w-4" strokeWidth={2.2} />
-              Simuler {pack.credits} {pack.credits > 1 ? "crédits" : "crédit"}
-            </Button>
+            <p className="mt-3 text-sm text-muted">
+              Si tu administres ce site : renseigne{" "}
+              <code className="font-mono">STRIPE_SECRET_KEY</code> et redémarre
+              le serveur.
+            </p>
           </Card>
         ) : (
           <>

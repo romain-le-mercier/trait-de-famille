@@ -18,19 +18,22 @@ Scripts : `dev`, `build`, `start`, `lint`, `typecheck`.
 
 ## Variables d'environnement
 
-Copie `.env.example` en `.env.local` (ou `.env`). **Une clé de moteur de rendu
-est indispensable.** Le paiement, lui, peut rester vide : il passe alors en
-« mode démo » (crédits accordés localement, clairement signalé dans l'UI).
+Copie `.env.example` en `.env.local` (ou `.env`) — il documente chaque variable
+et ce qui casse quand elle manque. **Une clé de moteur de rendu est
+indispensable**, le reste dépend de ce que tu veux tester.
 
-| Variable | Rôle |
-| --- | --- |
-| `GEMINI_API_KEY` + `GEMINI_MODEL` | Moteur de génération (requis) |
-| `REPLICATE_API_TOKEN` + `REPLICATE_MODEL` | Alternative à Gemini, prioritaire si présente |
-| `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Connexion Google (requis pour acheter) |
-| `AUTH_SECRET` | Signature des sessions (`openssl rand -base64 32`) |
-| `STRIPE_SECRET_KEY` | Active le vrai Checkout Stripe |
-| `STRIPE_WEBHOOK_SECRET` | Signature du webhook (`stripe listen --forward-to localhost:3000/api/stripe/webhook`) |
-| `NEXT_PUBLIC_SITE_URL` | Base des URL de retour Stripe |
+| Variable | Rôle | Sans elle |
+| --- | --- | --- |
+| `LITELLM_BASE_URL` + `LITELLM_API_KEY` + `LITELLM_MODEL` | Moteur de génération, via le proxy LiteLLM | Aucun dessin n'est produit |
+| `NEXT_PUBLIC_SITE_URL` | Base des canoniques, du sitemap et de l'image de partage | Retombe sur `localhost` — à renseigner en production |
+| `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Connexion Google | Personne ne peut acheter |
+| `AUTH_SECRET` | Signature des sessions (`openssl rand -base64 32`) | Le SSO est désactivé |
+| `AUTH_URL` + `AUTH_TRUST_HOST` | Production derrière un proxy | Erreur `UntrustedHost` à la connexion |
+| `STRIPE_SECRET_KEY` | Active le Checkout Stripe | L'écran de déblocage annonce « Paiement indisponible » |
+| `STRIPE_WEBHOOK_SECRET` | Signature du webhook | Aucun compte n'est crédité après paiement |
+
+Aucune clé publiable Stripe (`pk_...`) n'est nécessaire : le paiement passe par
+une redirection côté serveur.
 
 Après toute modification d'un `.env`, **redémarrer le serveur** : les variables
 ne sont lues qu'au démarrage.
@@ -42,6 +45,11 @@ domaine de production).
 ⚠️ Une clé `sk_live_` déclenche de vrais débits. Pour la mise au point, utilise
 une clé `sk_test_` : l'écran de paiement affiche un avertissement quand il
 détecte le mode réel.
+
+Sans `STRIPE_SECRET_KEY`, il n'existe aucun moyen de débloquer un coloriage :
+l'écran de déblocage annonce « Paiement indisponible ». C'est délibéré — un
+mode démo qui accorde des crédits sans paiement donnerait le produit s'il
+était mal configuré en production.
 
 ## Comptes et crédits
 
@@ -74,6 +82,19 @@ de détail* sont traduits en modificateurs de prompt (`PROMPTS`, dans ce même
 fichier) — c'est le seul endroit à toucher pour ajuster le rendu ou ajouter des
 styles.
 
+L'appel passe par **LiteLLM**, un proxy devant le modèle d'images : les appels,
+les jetons et le coût sont journalisés au même endroit. Le proxy est interrogé
+au format OpenAI (`/v1/chat/completions`) et non par sa route de pass-through
+Gemini : celle-ci attend un nom de modèle sans préfixe alors que les clés sont
+autorisées sur `gemini/<modèle>`, et répond 403. L'image générée revient dans
+`message.images[]`, sous forme d'URL `data:`.
+
+**Il n'y a aucun fournisseur de secours, et c'est voulu.** Un appel direct au
+modèle en cas de panne du proxy échapperait à ces relevés, ce qui viderait le
+dispositif de son intérêt. Si LiteLLM est absent ou muet, l'app le dit et ne
+génère rien. `GET /api/generate` renvoie `{"available":true}` quand le moteur
+est joignable.
+
 **Une génération = une image livrée.** Un modèle génératif ne produit pas deux
 fois la même chose : régénérer en « haute définition » après paiement
 donnerait un autre dessin que celui validé. Donc :
@@ -96,7 +117,7 @@ appel. Le cache est purgé quand on change de photo.
 
 ```
 src/app/                 routes (landing, creer, apercu, debloquer, merci, mes-coloriages, légal)
-src/app/api/generate/    le moteur : prompts + appel Gemini ou Replicate
+src/app/api/generate/    le moteur : prompts + appel au modèle via LiteLLM
 src/app/api/             checkout Stripe, vérification de session, webhook
 src/lib/lineart/         appel du moteur côté client + types de réglages
 src/lib/store.ts         état persisté (crédits, brouillon, historique)

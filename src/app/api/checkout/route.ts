@@ -35,9 +35,8 @@ export async function POST(request: Request) {
   if (!secretKey) {
     return NextResponse.json(
       {
-        demo: true,
-        message:
-          "Stripe n'est pas configuré : renseigne STRIPE_SECRET_KEY dans .env.local.",
+        stripeMissing: true,
+        message: "Le paiement n'est pas configuré sur ce serveur.",
       },
       { status: 501 },
     );

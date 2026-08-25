@@ -394,9 +394,10 @@ export function PreviewFlow() {
             role="alert"
             className="mt-3 rounded-tile border-2 border-error bg-error/8 p-3 text-sm font-semibold"
           >
-            Le moteur de génération n&apos;est pas configuré. Renseigne{" "}
-            <code className="font-mono">GEMINI_API_KEY</code> (ou{" "}
-            <code className="font-mono">REPLICATE_API_TOKEN</code>) puis relance le
+            Le moteur de génération n&apos;est pas disponible pour l&apos;instant.
+            Réessaie plus tard — si tu administres ce site, renseigne{" "}
+            <code className="font-mono">LITELLM_BASE_URL</code> et{" "}
+            <code className="font-mono">LITELLM_API_KEY</code>, puis relance le
             serveur.
           </p>
         )}

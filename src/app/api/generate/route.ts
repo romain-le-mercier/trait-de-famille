@@ -3,20 +3,19 @@ import { NextResponse } from "next/server";
 /**
  * Moteur de rendu — c'est ici que le coloriage est produit.
  *
- * Deux fournisseurs possibles, choisis d'après les variables d'environnement
- * présentes : Replicate (prioritaire s'il est configuré) ou Gemini. Sans clé,
- * l'app n'a pas de moteur et le dit clairement à l'utilisateur.
+ * Une seule voie : LiteLLM, un proxy devant le modèle d'images. Aucun repli
+ * n'est prévu, et c'est délibéré — un fournisseur de secours appelé en direct
+ * échapperait à la journalisation des appels et du coût, qui est la raison
+ * d'être du proxy. Si LiteLLM n'est pas configuré ou ne répond pas, l'app le
+ * dit à l'utilisateur plutôt que de contourner.
  */
 
-type Provider = "replicate" | "gemini" | null;
-
-function detectProvider(): Provider {
-  if (process.env.REPLICATE_API_TOKEN && process.env.REPLICATE_MODEL) {
-    return "replicate";
-  }
-  if (process.env.GEMINI_API_KEY) return "gemini";
-  return null;
+function engineConfigured(): boolean {
+  return Boolean(process.env.LITELLM_BASE_URL && process.env.LITELLM_API_KEY);
 }
+
+/** Au-delà, on considère que le moteur ne répondra pas. */
+const ENGINE_TIMEOUT_MS = 120_000;
 
 const PROMPTS = {
   base:
@@ -41,15 +40,13 @@ const PROMPTS = {
 };
 
 export async function GET() {
-  const provider = detectProvider();
-  return NextResponse.json({ available: provider !== null, provider });
+  return NextResponse.json({ available: engineConfigured() });
 }
 
 export async function POST(request: Request) {
-  const provider = detectProvider();
-  if (!provider) {
+  if (!engineConfigured()) {
     return NextResponse.json(
-      { message: "Aucun moteur IA n'est configuré." },
+      { message: "Le moteur de génération n'est pas configuré sur ce serveur." },
       { status: 501 },
     );
   }
@@ -74,10 +71,8 @@ export async function POST(request: Request) {
 
   try {
     const bytes = Buffer.from(await photo.arrayBuffer());
-    const result =
-      provider === "replicate"
-        ? await runReplicate(bytes, photo.type || "image/jpeg", prompt)
-        : await runGemini(bytes, photo.type || "image/jpeg", prompt);
+    const mimeType = photo.type || "image/jpeg";
+    const result = await runLiteLLM(bytes, mimeType, prompt);
 
     return new NextResponse(new Uint8Array(result.data), {
       headers: {
@@ -102,122 +97,91 @@ interface GeneratedImage {
   mimeType: string;
 }
 
-async function runReplicate(
-  bytes: Buffer,
-  mimeType: string,
-  prompt: string,
-): Promise<GeneratedImage> {
-  const token = process.env.REPLICATE_API_TOKEN!;
-  const model = process.env.REPLICATE_MODEL!; // ex. "owner/nom" ou "owner/nom:version"
-  const [path, version] = model.split(":");
-  const endpoint = version
-    ? "https://api.replicate.com/v1/predictions"
-    : `https://api.replicate.com/v1/models/${path}/predictions`;
-
-  const dataUrl = `data:${mimeType};base64,${bytes.toString("base64")}`;
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      Prefer: "wait=60",
-    },
-    body: JSON.stringify({
-      ...(version ? { version } : {}),
-      input: { image: dataUrl, prompt },
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Replicate a répondu ${response.status}`);
-  }
-
-  let prediction = (await response.json()) as {
-    status: string;
-    output?: unknown;
-    urls?: { get?: string };
-    error?: string;
-  };
-
-  // Repli si "Prefer: wait" n'a pas suffi : on interroge jusqu'à 60 s.
-  const pollUrl = prediction.urls?.get;
-  for (let i = 0; i < 30 && pollUrl && ["starting", "processing"].includes(prediction.status); i++) {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    const poll = await fetch(pollUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    prediction = await poll.json();
-  }
-
-  if (prediction.status !== "succeeded") {
-    throw new Error(prediction.error || `Rendu IA ${prediction.status}`);
-  }
-
-  const output = prediction.output;
-  const url =
-    typeof output === "string"
-      ? output
-      : Array.isArray(output) && typeof output[0] === "string"
-        ? output[0]
-        : null;
-  if (!url) throw new Error("Réponse Replicate inattendue");
-
-  const image = await fetch(url);
-  if (!image.ok) throw new Error("Image générée illisible");
-  return {
-    data: await image.arrayBuffer(),
-    mimeType: image.headers.get("content-type") ?? "image/png",
-  };
-}
-
-async function runGemini(
-  bytes: Buffer,
-  mimeType: string,
-  prompt: string,
-): Promise<GeneratedImage> {
-  const key = process.env.GEMINI_API_KEY!;
-  const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash-image";
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              { inline_data: { mime_type: mimeType, data: bytes.toString("base64") } },
-            ],
-          },
-        ],
-      }),
-    },
-  );
-
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`Gemini a répondu ${response.status} : ${detail.slice(0, 200)}`);
-  }
-
-  const payload = (await response.json()) as {
-    candidates?: {
-      content?: {
-        parts?: { inlineData?: { data?: string; mimeType?: string } }[];
-      };
-    }[];
-  };
-
-  const part = payload.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data);
-  if (!part?.inlineData?.data) throw new Error("Gemini n'a pas renvoyé d'image");
-
-  const buffer = Buffer.from(part.inlineData.data, "base64");
+/** Décode une image renvoyée sous forme d'URL `data:` en un buffer. */
+function fromDataUri(uri: string): GeneratedImage | null {
+  const match = /^data:([^;,]+);base64,(.+)$/s.exec(uri);
+  if (!match) return null;
+  const buffer = Buffer.from(match[2], "base64");
   return {
     data: buffer.buffer.slice(
       buffer.byteOffset,
       buffer.byteOffset + buffer.byteLength,
     ) as ArrayBuffer,
-    mimeType: part.inlineData.mimeType ?? "image/png",
+    mimeType: match[1],
   };
+}
+
+/**
+ * Appel via LiteLLM, au format OpenAI `chat/completions`.
+ *
+ * LiteLLM n'accepte pas le format natif de Gemini pour ce modèle : sa route
+ * de pass-through attend un nom de modèle sans préfixe, alors que les clés
+ * sont autorisées sur `gemini/<modèle>`. On passe donc par le format OpenAI,
+ * que le proxy traduit — et qui est de toute façon le seul chemin où l'usage
+ * et le coût sont journalisés.
+ *
+ * L'image générée revient dans `message.images[]`, sous forme d'URL `data:`.
+ */
+async function runLiteLLM(
+  bytes: Buffer,
+  mimeType: string,
+  prompt: string,
+): Promise<GeneratedImage> {
+  const base = process.env.LITELLM_BASE_URL!.replace(/\/$/, "");
+  const key = process.env.LITELLM_API_KEY!;
+  const model = process.env.LITELLM_MODEL ?? "gemini/gemini-3.1-flash-image-preview";
+
+  const response = await fetch(`${base}/v1/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`,
+    },
+    signal: AbortSignal.timeout(ENGINE_TIMEOUT_MS),
+    body: JSON.stringify({
+      model,
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            {
+              type: "image_url",
+              image_url: { url: `data:${mimeType};base64,${bytes.toString("base64")}` },
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    // Le corps d'erreur du proxy nomme le modèle et les droits de la clé :
+    // il va dans les journaux du serveur, pas dans l'écran de l'utilisateur.
+    console.error("[generate:litellm]", response.status, await response.text());
+    throw new Error("Le moteur n'a pas répondu. Réessaie dans un instant.");
+  }
+
+  const payload = (await response.json()) as {
+    choices?: {
+      message?: {
+        content?: string | null;
+        images?: { image_url?: { url?: string }; url?: string }[];
+      };
+    }[];
+    usage?: { total_tokens?: number };
+  };
+
+  const message = payload.choices?.[0]?.message;
+  const candidate =
+    message?.images?.[0]?.image_url?.url ??
+    message?.images?.[0]?.url ??
+    (typeof message?.content === "string" && message.content.startsWith("data:")
+      ? message.content
+      : null);
+
+  if (!candidate) throw new Error("LiteLLM n'a pas renvoyé d'image");
+  const image = fromDataUri(candidate);
+  if (!image) throw new Error("Image LiteLLM illisible");
+  return image;
 }

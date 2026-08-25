@@ -10,9 +10,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-.env
-.env.local
-.env*.local
+# Tous les fichiers d'environnement sauf le modèle documenté : une règle
+# trop étroite laisserait passer un .env.backup ou un .env.prod.
+.env*
+!.env.example
 
 .vercel
 next-env.d.ts

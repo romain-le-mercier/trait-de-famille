@@ -131,9 +131,7 @@ export function SuccessFlow() {
       }
 
       setStatus(
-        useAppStore.getState().account.credits > 0 || params.get("demo")
-          ? "credits-only"
-          : "error",
+        useAppStore.getState().account.credits > 0 ? "credits-only" : "error",
       );
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
