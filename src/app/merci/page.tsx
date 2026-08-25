@@ -6,6 +6,9 @@ import { SuccessFlow } from "./SuccessFlow";
 export const metadata: Metadata = {
   title: "C'est prêt !",
   description: "Télécharge ton coloriage en PDF haute définition et imprime-le.",
+  // Page de tunnel : sans photo déposée ni compte connecté, elle n'a aucun
+  // sens pour un visiteur venu d'un moteur.
+  robots: { index: false, follow: true },
 };
 
 export default function MerciPage() {

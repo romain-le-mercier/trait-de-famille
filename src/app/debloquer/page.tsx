@@ -6,6 +6,9 @@ import { PaywallFlow } from "./PaywallFlow";
 export const metadata: Metadata = {
   title: "Débloque ton coloriage",
   description: "PDF haute définition, format A4, sans filigrane. Sans abonnement.",
+  // Page de tunnel : sans photo déposée ni compte connecté, elle n'a aucun
+  // sens pour un visiteur venu d'un moteur.
+  robots: { index: false, follow: true },
 };
 
 export default function DebloquerPage() {

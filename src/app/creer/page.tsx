@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Ajoute ta photo",
   description:
     "Choisis une photo nette et bien éclairée, on la transforme en dessin au trait.",
+  // Seule page du tunnel qui reste indexable : c'est une porte d'entrée
+  // valable, elle ne suppose rien d'un visiteur qui arrive de l'extérieur.
+  alternates: { canonical: "/creer" },
 };
 
 export default function CreerPage() {

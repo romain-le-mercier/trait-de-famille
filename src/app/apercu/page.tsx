@@ -5,6 +5,9 @@ import { PreviewFlow } from "./PreviewFlow";
 export const metadata: Metadata = {
   title: "Voilà ton coloriage",
   description: "Règle l'épaisseur du trait et le niveau de détail, puis débloque la version HD.",
+  // Page de tunnel : sans photo déposée ni compte connecté, elle n'a aucun
+  // sens pour un visiteur venu d'un moteur.
+  robots: { index: false, follow: true },
 };
 
 export default function ApercuPage() {

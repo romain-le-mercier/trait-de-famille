@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/#exemples", label: "Exemples" },
   { href: "/#comment-ca-marche", label: "Comment ça marche" },
   { href: "/#tarifs", label: "Tarifs" },
+  { href: "/guides", label: "Guides" },
   { href: "/mes-coloriages", label: "Mes coloriages" },
 ];
 

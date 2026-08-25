@@ -3,7 +3,10 @@ import { ButtonLink } from "@/components/ui/Button";
 import { FAQ_ITEMS } from "@/components/marketing/Faq";
 import { Accordion } from "@/components/ui/Accordion";
 
-export const metadata: Metadata = { title: "Contact" };
+export const metadata: Metadata = {
+  title: "Contact",
+  alternates: { canonical: "/contact" },
+};
 
 export default function ContactPage() {
   return (

@@ -5,6 +5,9 @@ import { SignInPanel } from "./SignInPanel";
 export const metadata: Metadata = {
   title: "Connexion",
   description: "Connecte-toi pour acheter des crédits et retrouver tes coloriages.",
+  // Page de tunnel : sans photo déposée ni compte connecté, elle n'a aucun
+  // sens pour un visiteur venu d'un moteur.
+  robots: { index: false, follow: true },
 };
 
 export default function ConnexionPage() {

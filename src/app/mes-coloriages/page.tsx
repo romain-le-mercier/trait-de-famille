@@ -6,6 +6,9 @@ import { GalleryFlow } from "./GalleryFlow";
 export const metadata: Metadata = {
   title: "Mes coloriages",
   description: "Retrouve et retélécharge tous tes coloriages, et tes crédits restants.",
+  // Page de tunnel : sans photo déposée ni compte connecté, elle n'a aucun
+  // sens pour un visiteur venu d'un moteur.
+  robots: { index: false, follow: true },
 };
 
 export default function GalleryPage() {

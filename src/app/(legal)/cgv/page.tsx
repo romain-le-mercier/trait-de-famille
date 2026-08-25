@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { formatPrice, PACKS } from "@/lib/pricing";
 
-export const metadata: Metadata = { title: "CGV" };
+export const metadata: Metadata = {
+  title: "CGV",
+  alternates: { canonical: "/cgv" },
+};
 
 export default function CgvPage() {
   return (
