@@ -8,10 +8,20 @@ gratuit filigrané, paywall et téléchargement PDF A4.
 ```bash
 nvm use            # Node 20.9+ requis (voir .nvmrc)
 npm install
-npm run dev        # http://localhost:3000
+
+# Une base est nécessaire, même en local : c'est là que vivent les crédits.
+docker run -d --name traitdefamille-pg --restart unless-stopped \
+  -e POSTGRES_USER=traitdefamille \
+  -e POSTGRES_PASSWORD=traitdefamille \
+  -e POSTGRES_DB=traitdefamille \
+  -p 55432:5432 -v traitdefamille-pgdata:/var/lib/postgresql/data \
+  postgres:16-alpine
+
+npm run dev        # applique les migrations, puis http://localhost:3000
 ```
 
-Scripts : `dev`, `build`, `start`, `lint`, `typecheck`.
+Scripts : `dev`, `build`, `start`, `migrate`, `lint`, `typecheck`.
+`dev` et `start` appliquent les migrations avant de démarrer.
 
 > Ne pas lancer `npm run build` pendant que `npm run dev` tourne : les deux
 > écrivent dans `.next` et le serveur de dev renvoie alors des erreurs 500.
@@ -24,6 +34,7 @@ indispensable**, le reste dépend de ce que tu veux tester.
 
 | Variable | Rôle | Sans elle |
 | --- | --- | --- |
+| `DATABASE_URL` | Postgres : comptes, crédits, achats | Le serveur refuse de démarrer |
 | `LITELLM_BASE_URL` + `LITELLM_API_KEY` + `LITELLM_MODEL` | Moteur de génération, via le proxy LiteLLM | Aucun dessin n'est produit |
 | `NEXT_PUBLIC_SITE_URL` | Base des canoniques, du sitemap et de l'image de partage | Retombe sur `localhost` — à renseigner en production |
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Connexion Google | Personne ne peut acheter |
@@ -66,13 +77,38 @@ vérité :
 - un crédit n'est débité qu'**après** que le fichier est prêt, et rendu
   automatiquement si l'enregistrement échoue.
 
-Le store serveur est un fichier JSON (`.data/accounts.json`) avec écritures
-sérialisées et atomiques. Suffisant pour un mono-serveur, **à remplacer par
-Postgres ou Redis** avant un déploiement serverless : c'est le seul fichier à
-réécrire, toute la logique passe par ses fonctions.
-
 Les images, elles, restent dans le navigateur (IndexedDB) : un compte retrouve
 ses crédits partout, mais sa galerie est locale à l'appareil.
+
+### Base de données et migrations
+
+Deux tables seulement, dans `migrations/` : `accounts` et `purchases`. La
+sûreté vient du schéma plutôt que du code applicatif :
+
+- **le débit tient en une instruction** —
+  `UPDATE … SET credits = credits - 1 WHERE id = $1 AND credits >= 1 RETURNING credits`.
+  La condition et l'écriture sont évaluées sous le même verrou de ligne :
+  aucune course possible, même avec plusieurs instances. Zéro ligne renvoyée
+  signifie solde insuffisant ;
+- **l'idempotence Stripe est une clé primaire.** `purchases.stripe_session_id`
+  est unique : le second appel — webhook ou retour de paiement, dans n'importe
+  quel ordre — n'insère rien et ne crédite rien ;
+- une contrainte `CHECK (credits >= 0)` interdit un solde négatif même en cas
+  de bug applicatif.
+
+**Les migrations s'appliquent au démarrage**, dans `npm start`, avant
+`next start` (`scripts/migrate.mjs`). C'est nécessaire parce que la base de
+production n'est joignable que depuis le réseau interne de l'hébergeur : on ne
+peut pas migrer depuis un poste de dev. Le script prend un verrou consultatif
+Postgres — deux instances qui démarrent ensemble n'appliquent pas deux fois la
+même migration —, exécute chaque fichier dans sa propre transaction, et **sort
+en erreur si quoi que ce soit échoue**, pour que le déploiement s'arrête au
+lieu de démarrer sur un schéma incomplet.
+
+Pour ajouter une migration : un nouveau fichier `migrations/002_*.sql`. Ils
+sont appliqués par ordre alphabétique, une seule fois, et enregistrés dans
+`schema_migrations`. Ne jamais modifier un fichier déjà déployé — il ne sera
+pas rejoué.
 
 ## Comment ça marche
 
@@ -120,9 +156,12 @@ src/app/                 routes (landing, creer, apercu, debloquer, merci, mes-c
 src/app/api/generate/    le moteur : prompts + appel au modèle via LiteLLM
 src/app/api/             checkout Stripe, vérification de session, webhook
 src/lib/lineart/         appel du moteur côté client + types de réglages
-src/lib/store.ts         état persisté (crédits, brouillon, historique)
+src/lib/server/          comptes et crédits dans Postgres
+src/lib/store.ts         état persisté (brouillon, historique local)
 src/lib/storage.ts       images en IndexedDB (photo, dessin généré, galerie)
 src/components/          design system, sections marketing, écrans du parcours
+migrations/              schéma SQL, appliqué au démarrage
+scripts/migrate.mjs      exécuteur de migrations
 ```
 
 ## À compléter avant mise en production
@@ -136,9 +175,9 @@ src/components/          design system, sections marketing, écrans du parcours
   offre gratuite qui réutilise les données.
 - **Anti-abus.** L'aperçu gratuit déclenche un appel facturé : prévoir un quota
   par session/IP.
-- **Remplacer le store fichier par une vraie base** (voir « Comptes et
-  crédits ») : indispensable dès qu'il y a plus d'une instance ou un
-  déploiement serverless.
+- **Sauvegardes de la base.** C'est le seul endroit où vit de l'argent :
+  activer les sauvegardes planifiées côté hébergeur, et vérifier une
+  restauration au moins une fois.
 - Mentions légales, CGV, politique de confidentialité : les pages existent, les
   champs `[à compléter]` attendent les infos de la société.
 - Illustrations de la landing : ce sont des SVG de démonstration, pas de vraies

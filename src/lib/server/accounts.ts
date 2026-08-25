@@ -1,19 +1,47 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { Pool } from "pg";
 
 /**
- * Comptes et solde de crédits, côté serveur.
+ * Comptes et solde de crédits, dans Postgres.
  *
- * Volontairement minimal : un fichier JSON, des écritures sérialisées et
- * atomiques. C'est suffisant pour un mono-serveur et ça évite d'imposer une
- * base de données avant qu'il y en ait besoin.
+ * C'est le seul endroit où vit de l'argent. Deux principes y sont tenus :
  *
- * ⚠️ À remplacer par Postgres / Redis avant toute mise en production
- * sérieuse : ce store ne survit pas à un déploiement serverless (système de
- * fichiers éphémère) et ne supporte pas plusieurs instances. Toute la logique
- * métier passe par les fonctions ci-dessous — c'est le seul fichier à
- * réécrire le jour où on change de socle.
+ *   - **Chaque opération est atomique en une instruction.** Le débit est un
+ *     `UPDATE … WHERE credits >= n RETURNING credits` : pas de lecture suivie
+ *     d'une écriture, donc pas de course entre deux instances.
+ *   - **Le crédit est idempotent par le schéma.** L'identifiant de session
+ *     Stripe est la clé primaire de `purchases` : le second appel — webhook ou
+ *     retour de paiement, dans n'importe quel ordre — n'insère rien et ne
+ *     crédite rien.
+ *
+ * Le schéma est dans `migrations/`, appliqué au démarrage par
+ * `scripts/migrate.mjs`.
  */
+
+const connectionString = process.env.DATABASE_URL;
+
+/**
+ * En développement, Next recharge ce module à chaque modification : sans ce
+ * cache, chaque rechargement ouvrirait un pool de plus jusqu'à saturer les
+ * connexions de la base.
+ */
+const globalForPool = globalThis as unknown as { traitDeFamillePool?: Pool };
+
+function getPool(): Pool {
+  if (!connectionString) {
+    throw new Error(
+      "DATABASE_URL est absente : impossible de lire ou d'écrire les crédits.",
+    );
+  }
+  globalForPool.traitDeFamillePool ??= new Pool({
+    connectionString,
+    max: 10,
+    idleTimeoutMillis: 30_000,
+    ssl: /[?&]sslmode=(require|prefer)/.test(connectionString)
+      ? { rejectUnauthorized: false }
+      : undefined,
+  });
+  return globalForPool.traitDeFamillePool;
+}
 
 export interface Purchase {
   sessionId: string;
@@ -32,78 +60,78 @@ export interface Account {
   purchases: Purchase[];
 }
 
-interface Database {
-  accounts: Record<string, Account>;
-  /** Sessions Stripe déjà créditées : garantit l'idempotence entre le webhook
-   *  et la vérification au retour de paiement, qui peuvent arriver dans
-   *  n'importe quel ordre. */
-  processedSessions: string[];
-}
-
-const DATA_FILE = join(process.cwd(), ".data", "accounts.json");
-const EMPTY: Database = { accounts: {}, processedSessions: [] };
-
-/** Toutes les écritures passent par cette chaîne : pas d'entrelacement. */
-let queue: Promise<unknown> = Promise.resolve();
-
-async function read(): Promise<Database> {
-  try {
-    const raw = await readFile(DATA_FILE, "utf8");
-    const parsed = JSON.parse(raw) as Partial<Database>;
-    return {
-      accounts: parsed.accounts ?? {},
-      processedSessions: parsed.processedSessions ?? [],
-    };
-  } catch {
-    return { ...EMPTY };
-  }
-}
-
-async function write(database: Database) {
-  await mkdir(dirname(DATA_FILE), { recursive: true });
-  const temporary = `${DATA_FILE}.${process.pid}.tmp`;
-  await writeFile(temporary, JSON.stringify(database, null, 2), "utf8");
-  await rename(temporary, DATA_FILE); // atomique : jamais de fichier tronqué
-}
-
-function transaction<T>(mutate: (database: Database) => T | Promise<T>): Promise<T> {
-  const next = queue.then(async () => {
-    const database = await read();
-    const result = await mutate(database);
-    await write(database);
-    return result;
-  });
-  // La file continue même si une transaction échoue.
-  queue = next.catch(() => undefined);
-  return next;
-}
-
-function ensure(database: Database, id: string): Account {
-  const existing = database.accounts[id];
-  if (existing) return existing;
-  const account: Account = {
-    id,
-    credits: 0,
-    createdAt: Date.now(),
-    purchases: [],
-  };
-  database.accounts[id] = account;
-  return account;
-}
-
 export interface Identity {
   id: string;
   email?: string | null;
   name?: string | null;
 }
 
+interface AccountRow {
+  id: string;
+  email: string | null;
+  name: string | null;
+  credits: number;
+  created_at: Date;
+}
+
+interface PurchaseRow {
+  stripe_session_id: string;
+  pack_id: string;
+  credits: number;
+  amount: number;
+  created_at: Date;
+}
+
+/**
+ * Crée le compte s'il n'existe pas et rafraîchit les informations venues de
+ * Google. `COALESCE` évite d'écraser un email connu par un `null`.
+ */
+const UPSERT = `
+  INSERT INTO accounts (id, email, name)
+  VALUES ($1, $2, $3)
+  ON CONFLICT (id) DO UPDATE
+    SET email = COALESCE(EXCLUDED.email, accounts.email),
+        name  = COALESCE(EXCLUDED.name,  accounts.name)
+  RETURNING id, email, name, credits, created_at
+`;
+
+function toAccount(row: AccountRow, purchases: Purchase[] = []): Account {
+  return {
+    id: row.id,
+    email: row.email ?? undefined,
+    name: row.name ?? undefined,
+    credits: row.credits,
+    createdAt: row.created_at.getTime(),
+    purchases,
+  };
+}
+
 export async function getAccount(identity: Identity): Promise<Account> {
-  return transaction((database) => {
-    const account = ensure(database, identity.id);
-    if (identity.email) account.email = identity.email;
-    if (identity.name) account.name = identity.name;
-    return { ...account };
-  });
+  const pool = getPool();
+  const account = await pool.query<AccountRow>(UPSERT, [
+    identity.id,
+    identity.email ?? null,
+    identity.name ?? null,
+  ]);
+  const purchases = await pool.query<PurchaseRow>(
+    `SELECT stripe_session_id, pack_id, credits, amount, created_at
+       FROM purchases
+      WHERE account_id = $1
+      ORDER BY created_at DESC
+      LIMIT 50`,
+    [identity.id],
+  );
+
+  return toAccount(
+    account.rows[0],
+    purchases.rows.map((row) => ({
+      sessionId: row.stripe_session_id,
+      packId: row.pack_id,
+      credits: row.credits,
+      amount: row.amount,
+      at: row.created_at.getTime(),
+    })),
+  );
 }
 
 export interface GrantInput {
@@ -121,26 +149,46 @@ export interface GrantResult {
 }
 
 export async function grantCredits(input: GrantInput): Promise<GrantResult> {
-  return transaction((database) => {
-    const account = ensure(database, input.identity.id);
-    if (input.identity.email) account.email = input.identity.email;
-    if (input.identity.name) account.name = input.identity.name;
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(UPSERT, [
+      input.identity.id,
+      input.identity.email ?? null,
+      input.identity.name ?? null,
+    ]);
 
-    if (database.processedSessions.includes(input.sessionId)) {
-      return { credits: account.credits, granted: false };
+    // Si la session est déjà enregistrée, rien n'est inséré : c'est là que se
+    // joue l'idempotence, sans lecture préalable ni verrou applicatif.
+    const inserted = await client.query(
+      `INSERT INTO purchases (stripe_session_id, account_id, pack_id, credits, amount)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (stripe_session_id) DO NOTHING`,
+      [input.sessionId, input.identity.id, input.packId, input.credits, input.amount],
+    );
+
+    if (inserted.rowCount === 0) {
+      const current = await client.query<{ credits: number }>(
+        "SELECT credits FROM accounts WHERE id = $1",
+        [input.identity.id],
+      );
+      await client.query("COMMIT");
+      return { credits: current.rows[0]?.credits ?? 0, granted: false };
     }
 
-    account.credits += input.credits;
-    account.purchases.unshift({
-      sessionId: input.sessionId,
-      packId: input.packId,
-      credits: input.credits,
-      amount: input.amount,
-      at: Date.now(),
-    });
-    database.processedSessions.push(input.sessionId);
-    return { credits: account.credits, granted: true };
-  });
+    const updated = await client.query<{ credits: number }>(
+      `UPDATE accounts SET credits = credits + $2 WHERE id = $1 RETURNING credits`,
+      [input.identity.id, input.credits],
+    );
+    await client.query("COMMIT");
+    return { credits: updated.rows[0].credits, granted: true };
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export interface ConsumeResult {
@@ -152,14 +200,28 @@ export async function consumeCredit(
   identity: Identity,
   amount = 1,
 ): Promise<ConsumeResult> {
-  return transaction((database) => {
-    const account = ensure(database, identity.id);
-    if (account.credits < amount) {
-      return { ok: false, credits: account.credits };
-    }
-    account.credits -= amount;
-    return { ok: true, credits: account.credits };
-  });
+  const pool = getPool();
+  // Une seule instruction : la condition sur le solde et le débit sont
+  // évalués sous le même verrou de ligne. Aucune course possible, même si
+  // dix requêtes arrivent en même temps sur des instances différentes.
+  const updated = await pool.query<{ credits: number }>(
+    `UPDATE accounts
+        SET credits = credits - $2
+      WHERE id = $1 AND credits >= $2
+      RETURNING credits`,
+    [identity.id, amount],
+  );
+
+  if (updated.rowCount === 1) {
+    return { ok: true, credits: updated.rows[0].credits };
+  }
+
+  // Zéro ligne : soit le solde est insuffisant, soit le compte n'existe pas.
+  const current = await pool.query<{ credits: number }>(
+    "SELECT credits FROM accounts WHERE id = $1",
+    [identity.id],
+  );
+  return { ok: false, credits: current.rows[0]?.credits ?? 0 };
 }
 
 /** Rend un crédit si l'étape suivante a échoué côté client. */
@@ -167,9 +229,10 @@ export async function refundCredit(
   identity: Identity,
   amount = 1,
 ): Promise<number> {
-  return transaction((database) => {
-    const account = ensure(database, identity.id);
-    account.credits += amount;
-    return account.credits;
-  });
+  const pool = getPool();
+  const updated = await pool.query<{ credits: number }>(
+    `UPDATE accounts SET credits = credits + $2 WHERE id = $1 RETURNING credits`,
+    [identity.id, amount],
+  );
+  return updated.rows[0]?.credits ?? 0;
 }
