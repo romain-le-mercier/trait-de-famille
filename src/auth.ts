@@ -17,6 +17,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: { strategy: "jwt" },
   pages: { signIn: "/connexion" },
+  // L'app tourne derrière le reverse proxy de l'hébergeur, qui réécrit l'hôte.
+  // Sans ceci, Auth.js refuse l'hôte annoncé et renvoie `UntrustedHost` sur
+  // /api/auth/session — la connexion Google devient impossible en production.
+  trustHost: true,
   callbacks: {
     jwt({ token, profile }) {
       if (profile?.sub) token.sub = profile.sub;

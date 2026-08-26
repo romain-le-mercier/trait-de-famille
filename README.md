@@ -178,6 +178,10 @@ scripts/migrate.mjs      exécuteur de migrations
 - **Sauvegardes de la base.** C'est le seul endroit où vit de l'argent :
   activer les sauvegardes planifiées côté hébergeur, et vérifier une
   restauration au moins une fois.
+- **Retirer la sonde de réseau.** `src/app/api/diagnostic/route.ts` sert à
+  trouver l'adresse interne du proxy LiteLLM depuis le conteneur. Elle
+  n'existe que si `DIAGNOSTIC_TOKEN` est définie : vider la variable la
+  désactive, mais autant supprimer le fichier une fois la config arrêtée.
 - Mentions légales, CGV, politique de confidentialité : les pages existent, les
   champs `[à compléter]` attendent les infos de la société.
 - Illustrations de la landing : ce sont des SVG de démonstration, pas de vraies

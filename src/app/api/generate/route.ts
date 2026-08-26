@@ -95,10 +95,18 @@ export async function POST(request: Request) {
       `[generate] échec après ${((Date.now() - startedAt) / 1000).toFixed(1)}s`,
       error,
     );
+    // « fetch failed » ne veut rien dire pour un visiteur, et le code réseau
+    // sous-jacent (EAI_AGAIN, ECONNREFUSED…) est une information
+    // d'infrastructure : elle reste dans les journaux.
+    const cause = (error as { cause?: NodeJS.ErrnoException } | undefined)?.cause;
+    const reseau = Boolean(cause?.code);
     return NextResponse.json(
       {
-        message:
-          error instanceof Error ? error.message : "Le moteur IA n'a pas répondu.",
+        message: reseau
+          ? "Le moteur de génération est injoignable. Réessaie dans un instant."
+          : error instanceof Error
+            ? error.message
+            : "Le moteur n'a pas répondu.",
       },
       { status: 502 },
     );
