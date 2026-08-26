@@ -39,7 +39,7 @@ indispensable**, le reste dépend de ce que tu veux tester.
 | `NEXT_PUBLIC_SITE_URL` | Base des canoniques, du sitemap et de l'image de partage | Retombe sur `localhost` — à renseigner en production |
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Connexion Google | Personne ne peut acheter |
 | `AUTH_SECRET` | Signature des sessions (`openssl rand -base64 32`) | Le SSO est désactivé |
-| `AUTH_URL` + `AUTH_TRUST_HOST` | Production derrière un proxy | Erreur `UntrustedHost` à la connexion |
+| `AUTH_URL` | Force l'origine OAuth ; sinon dérivée de `NEXT_PUBLIC_SITE_URL` | Rien — c'est le cas normal |
 | `STRIPE_SECRET_KEY` | Active le Checkout Stripe | L'écran de déblocage annonce « Paiement indisponible » |
 | `STRIPE_WEBHOOK_SECRET` | Signature du webhook | Aucun compte n'est crédité après paiement |
 
@@ -49,9 +49,14 @@ une redirection côté serveur.
 Après toute modification d'un `.env`, **redémarrer le serveur** : les variables
 ne sont lues qu'au démarrage.
 
-Côté Google Cloud, l'URI de redirection à autoriser est
-`http://localhost:3000/api/auth/callback/google` (et son équivalent sur le
-domaine de production).
+Côté Google Cloud, les URI de redirection à autoriser sont
+`http://localhost:3000/api/auth/callback/google` et
+`https://TON-DOMAINE/api/auth/callback/google`.
+
+Cette URI est construite à partir de `NEXT_PUBLIC_SITE_URL` : elle ne peut donc
+pas diverger de l'adresse du site. Le serveur la journalise au démarrage
+(`[auth] origine : … · rappel OAuth : …`) — en cas de `redirect_uri_mismatch`,
+c'est la première chose à lire, avant de soupçonner la console Google.
 
 ⚠️ Une clé `sk_live_` déclenche de vrais débits. Pour la mise au point, utilise
 une clé `sk_test_` : l'écran de paiement affiche un avertissement quand il

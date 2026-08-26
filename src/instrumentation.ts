@@ -19,4 +19,40 @@ export async function register() {
    * famille d'adresses.
    */
   setDefaultResultOrder("ipv4first");
+
+  /**
+   * Origine d'Auth.js, alignée sur celle du site.
+   *
+   * Auth.js construit l'URI de rappel OAuth à partir de `AUTH_URL`, ou à
+   * défaut des en-têtes de la requête. `trustHost` autorise l'hôte annoncé
+   * mais ne le fixe pas : il suffit d'une variable mal renseignée, ou d'un
+   * en-tête inattendu, pour envoyer à Google une URI qu'il rejettera
+   * (`redirect_uri_mismatch`) — c'est arrivé avec `https://localhost:3000`.
+   *
+   * On la dérive donc de `NEXT_PUBLIC_SITE_URL`, déjà indispensable par
+   * ailleurs, pour n'avoir qu'une seule source de vérité. Une `AUTH_URL`
+   * explicite reste prioritaire.
+   */
+  const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  const explicite = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL;
+
+  if (site && !explicite) process.env.AUTH_URL = site;
+
+  const origine = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL;
+  console.log(
+    `[auth] origine : ${origine ?? "(déduite des en-têtes)"}` +
+      (origine ? ` · rappel OAuth : ${origine}/api/auth/callback/google` : ""),
+  );
+
+  // Une origine explicite qui contredit l'adresse du site est presque
+  // toujours un reliquat de configuration, et elle provoque un
+  // `redirect_uri_mismatch` que Google renvoie sans expliquer d'où il vient.
+  if (site && explicite && explicite.replace(/\/$/, "") !== site) {
+    console.warn(
+      `[auth] ATTENTION : AUTH_URL/NEXTAUTH_URL vaut « ${explicite} » alors que ` +
+        `le site est « ${site} ». C'est cette valeur qui sera envoyée à Google, ` +
+        `et elle provoquera une erreur redirect_uri_mismatch. Retire la variable ` +
+        `pour qu'elle soit déduite de NEXT_PUBLIC_SITE_URL.`,
+    );
+  }
 }
