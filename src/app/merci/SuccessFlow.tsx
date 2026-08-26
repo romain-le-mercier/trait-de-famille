@@ -16,16 +16,11 @@ import { Confetti } from "@/components/Confetti";
 import { GeneratingOverlay } from "@/components/flow/GeneratingOverlay";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card, Scribble } from "@/components/ui/Card";
+import { unlockArtwork } from "@/lib/artworks";
 import { downloadBlob, loadBitmap, slugDate } from "@/lib/image";
 import { buildColoringPdf } from "@/lib/pdf";
-import { packageArtwork } from "@/lib/produce";
 import { useAccount, useAppStore, useHydrated } from "@/lib/store";
-import {
-  getArtworkHd,
-  getArtworkThumb,
-  getDraftMaster,
-  saveArtwork,
-} from "@/lib/storage";
+import { getArtworkHd, getArtworkThumb } from "@/lib/storage";
 
 type Status = "working" | "ready" | "credits-only" | "error";
 
@@ -87,45 +82,26 @@ export function SuccessFlow() {
         await useAppStore.getState().refreshAccount();
       }
 
-      // 2. Un coloriage déjà produit ? On l'affiche.
+      // 2. Un coloriage déjà débloqué ? On l'affiche.
       const explicitId = params.get("id");
       if (explicitId && (await showArtwork(explicitId))) return;
 
-      const draft = useAppStore.getState().draft;
-      if (draft?.unlocked && (await showArtwork(draft.id))) return;
+      // 3. L'essai mis de côté avant le paiement, et un crédit pour le
+      //    couvrir : on le débloque. Rien n'est régénéré — on livre exactement
+      //    l'image que l'utilisateur avait approuvée dans l'aperçu.
+      const pending = useAppStore.getState().pendingUnlockId;
+      if (pending) {
+        useAppStore.getState().setPendingUnlock(null);
+        const item = useAppStore.getState().items.find((i) => i.id === pending);
 
-      // 3. Le dessin validé avant paiement + des crédits : on le débloque.
-      //    Rien n'est régénéré — on livre exactement l'image approuvée.
-      const credits = useAppStore.getState().account.credits;
-      if (draft && !draft.unlocked && credits > 0) {
-        const master = await getDraftMaster();
-        if (master) {
-          try {
-            setProgress(0.4);
-            const artwork = await packageArtwork(master);
+        if (item?.unlocked && (await showArtwork(pending))) return;
 
-            const response = await fetch("/api/credits/consume", { method: "POST" });
-            if (!response.ok) {
-              setStatus("credits-only");
-              return;
-            }
-            const data = await response.json();
-            useAppStore.getState().setCredits(Number(data.credits ?? 0));
-
-            await saveArtwork(draft.id, artwork.hd, artwork.thumb);
-            useAppStore.getState().addItem({
-              id: draft.id,
-              fileName: draft.fileName,
-              createdAt: Date.now(),
-              settings: draft.settings,
-            });
-            useAppStore.getState().patchDraft({ unlocked: true });
-            await showArtwork(draft.id);
-            return;
-          } catch {
+        if (item && useAppStore.getState().account.credits > 0) {
+          setProgress(0.4);
+          const outcome = await unlockArtwork(pending);
+          if (outcome.ok && (await showArtwork(pending))) return;
+          if (!outcome.ok && outcome.reason === "error") {
             setMessage("L'enregistrement a échoué. Ton crédit n'a pas été utilisé.");
-            setStatus("error");
-            return;
           }
         }
       }
@@ -210,8 +186,8 @@ export function SuccessFlow() {
           </h1>
           <p className="mt-3 text-muted">
             {isCredits
-              ? `Il te reste ${account.credits} ${account.credits > 1 ? "crédits" : "crédit"}. Choisis une photo et débloque ton coloriage en un clic.`
-              : "On n'a pas retrouvé de coloriage à télécharger. Repartons d'une photo."}
+              ? `Il te reste ${account.credits} ${account.credits > 1 ? "crédits" : "crédit"}. Débloque un de tes essais depuis « Mes coloriages », ou repars d'une nouvelle photo.`
+              : "On n'a pas retrouvé de coloriage à télécharger. Tes essais restent dans « Mes coloriages »."}
           </p>
           {message && (
             <p className="mt-4 flex items-start gap-2 rounded-tile border-2 border-line bg-paper p-3 text-left text-sm">

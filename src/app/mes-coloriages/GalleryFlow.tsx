@@ -1,15 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Coins, Download, Palette, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  AlertTriangle,
+  Coins,
+  Download,
+  Lock,
+  Palette,
+  Trash2,
+  Unlock,
+} from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { Scene } from "@/components/illustrations/Scene";
+import { forget, unlockArtwork } from "@/lib/artworks";
 import { downloadBlob, loadBitmap, slugDate } from "@/lib/image";
 import { DETAIL_LABELS, STROKE_LABELS } from "@/lib/lineart/types";
 import { buildColoringPdf } from "@/lib/pdf";
 import { useAccount, useAppStore, useHydrated } from "@/lib/store";
-import { deleteArtwork, getArtworkHd, getArtworkThumb } from "@/lib/storage";
+import { getArtworkHd, getArtworkThumb } from "@/lib/storage";
 
 const dateFormat = new Intl.DateTimeFormat("fr-FR", {
   day: "numeric",
@@ -18,14 +28,16 @@ const dateFormat = new Intl.DateTimeFormat("fr-FR", {
 });
 
 export function GalleryFlow() {
+  const router = useRouter();
   const hydrated = useHydrated();
   const account = useAccount();
   const credits = account.credits;
   const items = useAppStore((s) => s.items);
-  const removeItem = useAppStore((s) => s.removeItem);
+  const setPendingUnlock = useAppStore((s) => s.setPendingUnlock);
 
   const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -50,6 +62,41 @@ export function GalleryFlow() {
     };
   }, [hydrated, items]);
 
+  /**
+   * Débloque un essai déjà dessiné. Le modèle n'est pas rappelé : c'est
+   * exactement l'image de l'aperçu qui devient imprimable.
+   */
+  const unlock = async (id: string) => {
+    if (!account.signedIn) {
+      router.push("/connexion?next=/mes-coloriages");
+      return;
+    }
+    setBusyId(id);
+    setError(null);
+    const outcome = await unlockArtwork(id);
+    setBusyId(null);
+
+    // La vignette se recharge toute seule : le store a changé.
+    if (outcome.ok) return;
+
+    if (outcome.reason === "auth") {
+      router.push("/connexion?next=/mes-coloriages");
+      return;
+    }
+    if (outcome.reason === "credits") {
+      // On retient lequel : après paiement, il est livré directement.
+      setPendingUnlock(id);
+      router.push("/debloquer");
+      return;
+    }
+    setError(
+      outcome.reason === "missing"
+        ? "Ce dessin n'est plus dans ce navigateur. Aucun crédit n'a été utilisé."
+        : (outcome.message ??
+          "Le déblocage a échoué. Aucun crédit n'a été utilisé."),
+    );
+  };
+
   const redownload = async (id: string) => {
     setBusyId(id);
     try {
@@ -67,16 +114,13 @@ export function GalleryFlow() {
     }
   };
 
-  const remove = async (id: string) => {
-    await deleteArtwork(id);
-    removeItem(id);
-  };
-
   if (!hydrated) {
     return (
       <div className="mx-auto h-96 max-w-6xl animate-pulse rounded-card border-2 border-line bg-paper" />
     );
   }
+
+  const tests = items.filter((item) => !item.unlocked).length;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -113,9 +157,23 @@ export function GalleryFlow() {
       </div>
 
       <p className="mt-4 text-sm text-muted">
-        Tes coloriages sont conservés dans ce navigateur. Pense à télécharger les
-        PDF que tu veux garder.
+        {tests > 0
+          ? "Tes essais sont gardés tels quels : les débloquer ne redessine rien, tu reçois exactement l'image que tu as validée. Le tout vit dans ce navigateur — pense à télécharger les PDF que tu veux conserver."
+          : "Tes coloriages sont conservés dans ce navigateur. Pense à télécharger les PDF que tu veux garder."}
       </p>
+
+      {error && (
+        <p
+          role="alert"
+          className="mt-4 flex items-start gap-2 rounded-tile border-2 border-error bg-error/8 p-3 text-sm font-semibold"
+        >
+          <AlertTriangle
+            className="mt-0.5 h-4 w-4 shrink-0 text-error"
+            strokeWidth={2.2}
+          />
+          {error}
+        </p>
+      )}
 
       {items.length === 0 ? (
         <Card className="mt-8 flex flex-col items-center gap-4 p-10 text-center">
@@ -137,7 +195,7 @@ export function GalleryFlow() {
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => (
             <Card as="li" key={item.id} className="flex flex-col gap-3 p-4">
-              <div className="overflow-hidden rounded-tile border-2 border-line bg-white">
+              <div className="relative overflow-hidden rounded-tile border-2 border-line bg-white">
                 {thumbs[item.id] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -147,6 +205,12 @@ export function GalleryFlow() {
                   />
                 ) : (
                   <div className="aspect-square w-full bg-paper" />
+                )}
+                {!item.unlocked && (
+                  <Badge tone="ink" className="absolute left-2 top-2">
+                    <Lock className="h-3 w-3" strokeWidth={2.4} />
+                    Essai
+                  </Badge>
                 )}
               </div>
               <div className="flex-1">
@@ -159,19 +223,31 @@ export function GalleryFlow() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => redownload(item.id)}
-                  disabled={busyId === item.id}
-                >
-                  <Download className="h-4 w-4" strokeWidth={2.2} />
-                  {busyId === item.id ? "…" : "PDF"}
-                </Button>
+                {item.unlocked ? (
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => redownload(item.id)}
+                    disabled={busyId === item.id}
+                  >
+                    <Download className="h-4 w-4" strokeWidth={2.2} />
+                    {busyId === item.id ? "…" : "PDF"}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => unlock(item.id)}
+                    disabled={busyId === item.id}
+                  >
+                    <Unlock className="h-4 w-4" strokeWidth={2.2} />
+                    {busyId === item.id ? "…" : "Débloquer"}
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="ink"
-                  onClick={() => remove(item.id)}
+                  onClick={() => forget(item.id)}
                   aria-label="Supprimer ce coloriage"
                 >
                   <Trash2 className="h-4 w-4" strokeWidth={2.2} />

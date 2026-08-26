@@ -17,7 +17,7 @@ import { Badge, Card } from "@/components/ui/Card";
 import { IncludedList } from "@/components/marketing/Pricing";
 import { cx } from "@/lib/cx";
 import { DEFAULT_PACK_ID, formatPrice, getPack, PACKS, unitPrice } from "@/lib/pricing";
-import { useAccount } from "@/lib/store";
+import { useAccount, useAppStore } from "@/lib/store";
 
 interface StripeStatus {
   enabled: boolean;
@@ -28,6 +28,8 @@ export function PaywallFlow() {
   const router = useRouter();
   const params = useSearchParams();
   const account = useAccount();
+  /** Un essai a été mis de côté : il sera livré tel quel après le paiement. */
+  const pending = useAppStore((s) => s.pendingUnlockId);
 
   const requested = params.get("pack");
   const cancelled = params.get("annule") === "1";
@@ -85,11 +87,19 @@ export function PaywallFlow() {
           Un paiement, pas d&apos;abonnement. Les crédits n&apos;expirent jamais.
         </p>
 
-        {cancelled && (
+        {cancelled ? (
           <p className="mt-4 flex items-start gap-2 rounded-tile border-2 border-line bg-paper p-3 text-sm">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-grape" strokeWidth={2.2} />
-            Paiement annulé — ton aperçu est toujours là.
+            Paiement annulé — ton dessin t&apos;attend dans « Mes coloriages ».
           </p>
+        ) : (
+          pending && (
+            <p className="mt-4 flex items-start gap-2 rounded-tile border-2 border-line bg-paper p-3 text-sm">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-grape" strokeWidth={2.2} />
+              Le dessin que tu viens de choisir est gardé : après le paiement,
+              tu reçois exactement celui-là, sans nouvelle génération.
+            </p>
+          )
         )}
 
         {stripe?.mode === "live" && (

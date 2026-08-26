@@ -3,14 +3,16 @@ import { createStore, del, get, keys, set } from "idb-keyval";
 /**
  * Les images vivent dans IndexedDB (des Blob, potentiellement lourds), les
  * métadonnées dans le store Zustand persisté en localStorage.
+ *
+ * Un seul jeu de clés pour les dessins : `art:hd:<id>` et `art:thumb:<id>`.
+ * Un essai gratuit et un coloriage payé sont le *même* fichier — seule la
+ * vignette change (filigranée tant que ce n'est pas débloqué) et un drapeau
+ * dans le store. C'est ce qui permet de payer après coup sans rappeler le
+ * modèle, qui ne redonne jamais deux fois la même image.
  */
 const store = createStore("trait-de-famille", "images");
 
 const draftPhotoKey = "draft:photo";
-/** Le dessin généré pour le brouillon en cours : c'est le fichier qui sera
- *  livré. Il survit à l'aller-retour vers Stripe, donc rien à régénérer
- *  après paiement. */
-const draftMasterKey = "draft:master";
 const hdKey = (id: string) => `art:hd:${id}`;
 const thumbKey = (id: string) => `art:thumb:${id}`;
 
@@ -22,70 +24,43 @@ export function getDraftPhoto(): Promise<Blob | undefined> {
   return get<Blob>(draftPhotoKey, store);
 }
 
-export function saveDraftMaster(blob: Blob) {
-  return set(draftMasterKey, blob, store);
+/**
+ * Changement de photo. Les dessins déjà produits, eux, restent : ce sont les
+ * essais que l'utilisateur retrouve dans sa galerie.
+ */
+export async function clearDraft() {
+  await del(draftPhotoKey, store);
+  await purgeLegacy();
 }
-
-export function getDraftMaster(): Promise<Blob | undefined> {
-  return get<Blob>(draftMasterKey, store);
-}
-
-export function clearDraftMaster() {
-  return del(draftMasterKey, store);
-}
-
-/* ------------------------------------------------------------------ cache */
 
 /**
- * Cache des générations, indexé par signature de réglages.
- *
- * Chaque appel au modèle coûte et prend plusieurs secondes : revenir sur une
- * combinaison déjà essayée (Enfant → Ado → Enfant) doit être instantané et
- * gratuit.
+ * Reliquats des versions précédentes : le brouillon « maître » et le cache de
+ * générations, tous deux remplacés par les clés `art:*`. Sans ce ménage, ils
+ * occuperaient le quota du navigateur sans que rien ne les lise jamais.
  */
-const genKey = (draftId: string, signature: string) =>
-  `gen:${draftId}:${signature}`;
-
-export function saveGeneration(draftId: string, signature: string, blob: Blob) {
-  return set(genKey(draftId, signature), blob, store);
-}
-
-export function getGeneration(
-  draftId: string,
-  signature: string,
-): Promise<Blob | undefined> {
-  return get<Blob>(genKey(draftId, signature), store);
-}
-
-/** Signatures déjà générées pour ce brouillon (pour l'affichage des variantes). */
-export async function listGenerations(draftId: string): Promise<string[]> {
-  const prefix = `gen:${draftId}:`;
-  const all = await keys(store);
-  return all
-    .filter((key): key is string => typeof key === "string" && key.startsWith(prefix))
-    .map((key) => key.slice(prefix.length));
-}
-
-/** Purge le cache d'un brouillon : appelé quand on change de photo. */
-export async function clearGenerations(draftId?: string) {
-  const prefix = draftId ? `gen:${draftId}:` : "gen:";
+async function purgeLegacy() {
   const all = await keys(store);
   await Promise.all(
     all
-      .filter((key) => typeof key === "string" && key.startsWith(prefix))
+      .filter(
+        (key) =>
+          typeof key === "string" &&
+          (key === "draft:master" || key.startsWith("gen:")),
+      )
       .map((key) => del(key as string, store)),
   );
 }
 
-export async function clearDraft() {
-  await del(draftPhotoKey, store);
-  await del(draftMasterKey, store);
-  await clearGenerations();
-}
+/* ---------------------------------------------------------------- dessins */
 
 export async function saveArtwork(id: string, hd: Blob, thumb: Blob) {
   await set(hdKey(id), hd, store);
   await set(thumbKey(id), thumb, store);
+}
+
+/** Remplace la vignette sans toucher au fichier : au déblocage, elle perd son filigrane. */
+export function saveThumb(id: string, thumb: Blob) {
+  return set(thumbKey(id), thumb, store);
 }
 
 export function getArtworkHd(id: string): Promise<Blob | undefined> {

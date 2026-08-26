@@ -85,6 +85,30 @@ vérité :
 Les images, elles, restent dans le navigateur (IndexedDB) : un compte retrouve
 ses crédits partout, mais sa galerie est locale à l'appareil.
 
+### Essais et déblocage différé
+
+Un dessin entre dans « Mes coloriages » **dès sa génération**, verrouillé : la
+galerie contient les essais filigranés autant que les coloriages payés, et
+`unlocked` les distingue.
+
+C'est ce qui rend le paiement possible après coup. Un modèle génératif ne
+produit pas deux fois la même image : si l'essai était jeté, payer plus tard
+donnerait un autre dessin que celui qu'on a aimé. Le fichier est donc conservé
+tel quel, et le déblocage ne fait que remplacer sa vignette filigranée — aucun
+nouvel appel au modèle, aucun coût supplémentaire.
+
+Deux conséquences dans le code (`src/lib/artworks.ts`) :
+
+- **régénérer les mêmes réglages remplace l'essai précédent, jamais un
+  coloriage payé.** Ce fichier-là a été vendu, il ne nous appartient plus ;
+- **les essais sont plafonnés** (`MAX_TESTS`) et les plus anciens sont oubliés.
+  Une image pèse près d'un mégaoctet : sans plafond, le quota du navigateur
+  finirait par empêcher d'enregistrer ce qui vient d'être payé.
+
+Quand l'utilisateur n'a pas de crédit, l'essai visé est mémorisé
+(`pendingUnlockId`, persisté) avant la redirection vers Stripe : au retour,
+`/merci` livre exactement ce dessin.
+
 ### Base de données et migrations
 
 Deux tables seulement, dans `migrations/` : `accounts` et `purchases`. La
@@ -140,19 +164,19 @@ est joignable.
 fois la même chose : régénérer en « haute définition » après paiement
 donnerait un autre dessin que celui validé. Donc :
 
-1. l'aperçu appelle le modèle une seule fois et garde le résultat dans
-   IndexedDB (`draft:master`) ;
-2. cette image survit à l'aller-retour vers Stripe ;
+1. l'aperçu appelle le modèle une seule fois et range le résultat dans la
+   galerie (`art:hd:<id>`), verrouillé ;
+2. cette image survit à l'aller-retour vers Stripe, et même à un changement de
+   photo : elle reste dans « Mes coloriages » ;
 3. le déblocage ne fait que l'empaqueter (PDF + vignette) — aucun second appel.
 
 Conséquence : changer un réglage ne relance pas la génération automatiquement.
 L'interface signale que le dessin n'est plus à jour et propose un bouton
 explicite — chaque appel coûte, autant qu'il soit voulu.
 
-**Chaque version générée est mise en cache** dans IndexedDB, indexée par
-signature de réglages (`settingsKey`). Revenir sur une combinaison déjà
-essayée — Enfant → Ado → Enfant — la réaffiche instantanément et sans nouvel
-appel. Le cache est purgé quand on change de photo.
+**Chaque version générée est retrouvée par signature de réglages**
+(`settingsKey`). Revenir sur une combinaison déjà essayée — Enfant → Ado →
+Enfant — la réaffiche instantanément et sans nouvel appel.
 
 ## Architecture
 
@@ -162,8 +186,9 @@ src/app/api/generate/    le moteur : prompts + appel au modèle via LiteLLM
 src/app/api/             checkout Stripe, vérification de session, webhook
 src/lib/lineart/         appel du moteur côté client + types de réglages
 src/lib/server/          comptes et crédits dans Postgres
-src/lib/store.ts         état persisté (brouillon, historique local)
-src/lib/storage.ts       images en IndexedDB (photo, dessin généré, galerie)
+src/lib/artworks.ts      vie d'un dessin : essai, déblocage, oubli
+src/lib/store.ts         état persisté (brouillon, galerie locale)
+src/lib/storage.ts       images en IndexedDB (photo, dessins)
 src/components/          design system, sections marketing, écrans du parcours
 migrations/              schéma SQL, appliqué au démarrage
 scripts/migrate.mjs      exécuteur de migrations
@@ -180,6 +205,11 @@ scripts/migrate.mjs      exécuteur de migrations
   offre gratuite qui réutilise les données.
 - **Anti-abus.** L'aperçu gratuit déclenche un appel facturé : prévoir un quota
   par session/IP.
+- **Le filigrane est une barrière d'usage, pas de sécurité.** L'image sans
+  filigrane est écrite dans l'IndexedDB du visiteur dès la génération — c'est
+  ce qui permet de payer après coup sans redessiner. Quelqu'un d'outillé peut
+  l'en extraire. Si ça devient un problème, il faut garder le fichier côté
+  serveur et ne servir que le filigrané avant paiement.
 - **Sauvegardes de la base.** C'est le seul endroit où vit de l'argent :
   activer les sauvegardes planifiées côté hébergeur, et vérifier une
   restauration au moins une fois.

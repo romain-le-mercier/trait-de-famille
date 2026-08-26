@@ -5,7 +5,12 @@ export async function register() {
   // Seul le runtime Node a une pile DNS ; l'edge n'a rien à régler ici.
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
 
-  const { setDefaultResultOrder } = await import("node:dns");
+  // `webpackIgnore` est indispensable : ce fichier est aussi compilé pour le
+  // runtime edge, où webpack essaie de résoudre « node:dns » et fait échouer
+  // toute la compilation (« UnhandledSchemeError »). Le garde ci-dessus
+  // empêche l'exécution, pas le regroupement. Ignoré ici, l'import est laissé
+  // tel quel et c'est Node qui le résout à l'exécution.
+  const { setDefaultResultOrder } = await import(/* webpackIgnore: true */ "node:dns");
 
   /**
    * Priorité à l'IPv4 pour la résolution de noms.

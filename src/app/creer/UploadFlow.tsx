@@ -77,7 +77,6 @@ export function UploadFlow() {
         height: picked.height,
         settings: newDraftSettings(),
         createdAt: Date.now(),
-        unlocked: false,
       });
       router.push("/apercu");
     } catch {

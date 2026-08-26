@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -32,17 +32,10 @@ import {
   type LineArtSettings,
   type StrokeWidth,
 } from "@/lib/lineart/types";
+import { findTest, saveTest, testedKeys, unlockArtwork } from "@/lib/artworks";
 import { formatPrice, PACKS } from "@/lib/pricing";
-import { packageArtwork } from "@/lib/produce";
 import { useAccount, useAppStore, useHydrated } from "@/lib/store";
-import {
-  getDraftPhoto,
-  getGeneration,
-  listGenerations,
-  saveArtwork,
-  saveDraftMaster,
-  saveGeneration,
-} from "@/lib/storage";
+import { getArtworkHd, getDraftPhoto } from "@/lib/storage";
 
 /**
  * Filigrane de l'aperçu. Ne passer à `false` qu'en local, le temps de récupérer
@@ -57,19 +50,16 @@ export function PreviewFlow() {
   const hydrated = useHydrated();
   const account = useAccount();
   const draft = useAppStore((s) => s.draft);
+  const items = useAppStore((s) => s.items);
   const setSettings = useAppStore((s) => s.setSettings);
-  const setCredits = useAppStore((s) => s.setCredits);
-  const addItem = useAppStore((s) => s.addItem);
-  const patchDraft = useAppStore((s) => s.patchDraft);
 
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [master, setMaster] = useState<Blob | null>(null);
   const [displayUrl, setDisplayUrl] = useState<string | null>(null);
+  /** Le dessin affiché, tel qu'il est rangé dans la galerie. */
+  const [activeId, setActiveId] = useState<string | null>(null);
   /** Signature des réglages du dessin actuellement affiché. */
   const [activeKey, setActiveKey] = useState<string | null>(null);
-  /** Signatures déjà générées pour ce brouillon : réaffichables sans coût. */
-  const [cachedKeys, setCachedKeys] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [generating, setGenerating] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
@@ -81,6 +71,12 @@ export function PreviewFlow() {
   const urlsRef = useRef<string[]>([]);
   const settings = draft?.settings;
   const wanted = settings ? settingsKey(settings) : null;
+
+  /** Combinaisons déjà dessinées pour cette photo : y revenir est gratuit. */
+  const tested = useMemo(
+    () => (draft ? testedKeys(items, draft.id) : new Set<string>()),
+    [items, draft],
+  );
 
   const track = (url: string) => {
     urlsRef.current.push(url);
@@ -102,12 +98,15 @@ export function PreviewFlow() {
       .catch(() => setEngineReady(false));
   }, []);
 
-  /** Affiche une image générée (fraîche ou sortie du cache). */
-  const show = useCallback(async (blob: Blob, key: string) => {
-    setMaster(blob);
+  /**
+   * Affiche un dessin, fraîchement généré ou repris de la galerie.
+   *
+   * `id` est nul quand le navigateur a refusé de le conserver : l'aperçu
+   * s'affiche quand même, mais il n'y a rien à débloquer.
+   */
+  const show = useCallback(async (blob: Blob, key: string, id: string | null) => {
+    setActiveId(id);
     setActiveKey(key);
-    // C'est ce fichier-là qui sera livré, y compris après un aller-retour Stripe.
-    await saveDraftMaster(blob);
 
     if (!WATERMARK_PREVIEW) {
       setDisplayUrl(track(URL.createObjectURL(blob)));
@@ -139,12 +138,15 @@ export function PreviewFlow() {
           },
         });
         if (run !== runRef.current) return;
-        await saveGeneration(draft.id, key, result.blob);
-        setCachedKeys((current) =>
-          current.includes(key) ? current : [...current, key],
-        );
-        await show(result.blob, key);
-        patchDraft({ unlocked: false });
+        // Le dessin rejoint la galerie tout de suite, verrouillé : il pourra
+        // être débloqué plus tard sans repasser par le modèle.
+        const id = await saveTest({
+          draftId: draft.id,
+          fileName: draft.fileName,
+          settings: target,
+          master: result.blob,
+        });
+        await show(result.blob, key, id);
       } catch (caught) {
         if (run === runRef.current) {
           setError(
@@ -157,10 +159,11 @@ export function PreviewFlow() {
         if (run === runRef.current) setGenerating(false);
       }
     },
-    [photo, draft, patchDraft, show],
+    [photo, draft, show],
   );
 
-  // Récupère la photo déposée à l'étape précédente et l'état du cache.
+  // Récupère la photo déposée à l'étape précédente. Le dessin, lui, est
+  // remonté par l'effet ci-dessous : il n'y a qu'un seul chemin pour ça.
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
@@ -173,15 +176,6 @@ export function PreviewFlow() {
       }
       setPhoto(blob);
       setPhotoUrl(track(URL.createObjectURL(blob)));
-
-      const known = await listGenerations(draft.id);
-      if (cancelled) return;
-      setCachedKeys(known);
-
-      const key = settingsKey(draft.settings);
-      const existing = await getGeneration(draft.id, key);
-      if (cancelled || !existing) return;
-      await show(existing, key);
     })();
     return () => {
       cancelled = true;
@@ -193,92 +187,64 @@ export function PreviewFlow() {
   // « Transformer ma photo », on ne lui demande pas de cliquer une fois de plus.
   useEffect(() => {
     if (!photo || !settings || engineReady !== true) return;
-    if (master || generating || activeKey || cachedKeys.length > 0) return;
+    if (activeId || generating || activeKey || tested.size > 0) return;
     void generate(settings);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [photo, engineReady, cachedKeys.length]);
+  }, [photo, engineReady, tested.size]);
 
-  // Changement de réglages : si cette combinaison a déjà été générée, on la
-  // réaffiche instantanément — aucun appel au modèle.
+  // Remonte le dessin correspondant aux réglages courants s'il existe déjà :
+  // au retour sur la page comme au changement de réglages, c'est instantané
+  // et sans appel au modèle.
   useEffect(() => {
-    if (!draft || !wanted || generating || unlocking) return;
+    if (!hydrated || !draft || !wanted || generating || unlocking) return;
     if (activeKey === wanted) return;
     let cancelled = false;
     (async () => {
-      const cached = await getGeneration(draft.id, wanted);
-      if (cancelled || !cached) return;
-      await show(cached, wanted);
+      const known = findTest(draft.id, draft.settings);
+      if (!known) return;
+      const stored = await getArtworkHd(known.id);
+      if (cancelled || !stored) return;
+      await show(stored, wanted, known.id);
     })();
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wanted, draft?.id, generating, unlocking]);
+  }, [hydrated, wanted, draft?.id, generating, unlocking]);
 
   const unlock = useCallback(async () => {
-    if (!master || !draft || !settings) return;
+    if (!activeId) return;
     if (!account.signedIn) {
       router.push("/connexion?next=/apercu");
       return;
     }
 
     setUnlocking(true);
-    setProgress(0.25);
+    setProgress(0.35);
     setError(null);
 
-    let consumed = false;
-    try {
-      // On prépare le fichier AVANT de débiter : un échec ne coûte rien.
-      const artwork = await packageArtwork(master);
-      setProgress(0.6);
-
-      const response = await fetch("/api/credits/consume", { method: "POST" });
-      if (response.status === 401) {
-        router.push("/connexion?next=/apercu");
-        return;
-      }
-      if (response.status === 402) {
-        router.push("/debloquer");
-        return;
-      }
-      if (!response.ok) throw new Error("Le débit du crédit a échoué.");
-      consumed = true;
-
-      const data = await response.json();
-      setCredits(Number(data.credits ?? 0));
-
-      await saveArtwork(draft.id, artwork.hd, artwork.thumb);
-      addItem({
-        id: draft.id,
-        fileName: draft.fileName,
-        createdAt: Date.now(),
-        settings,
-      });
-      patchDraft({ unlocked: true });
-      router.push(`/merci?id=${draft.id}`);
-    } catch (caught) {
-      if (consumed) {
-        // Le crédit est parti mais l'enregistrement a échoué : on le rend.
-        await fetch("/api/credits/consume", { method: "DELETE" }).catch(() => {});
-        await useAppStore.getState().refreshAccount();
-      }
-      setUnlocking(false);
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Le déblocage a échoué. Aucun crédit n'a été utilisé.",
-      );
+    const outcome = await unlockArtwork(activeId);
+    if (outcome.ok) {
+      router.push(`/merci?id=${activeId}`);
+      return;
     }
-  }, [
-    master,
-    draft,
-    settings,
-    account.signedIn,
-    addItem,
-    patchDraft,
-    router,
-    setCredits,
-  ]);
+
+    if (outcome.reason === "auth") {
+      router.push("/connexion?next=/apercu");
+      return;
+    }
+    if (outcome.reason === "credits") {
+      // L'essai est gardé : après paiement, il est livré sans être redessiné.
+      useAppStore.getState().setPendingUnlock(activeId);
+      router.push("/debloquer");
+      return;
+    }
+
+    setUnlocking(false);
+    setError(
+      outcome.message ?? "Le déblocage a échoué. Aucun crédit n'a été utilisé.",
+    );
+  }, [activeId, account.signedIn, router]);
 
   if (!hydrated || !draft || !settings) {
     return (
@@ -295,7 +261,7 @@ export function PreviewFlow() {
   const stale = activeKey !== null && wanted !== null && activeKey !== wanted;
   const neverGenerated = activeKey === null;
   const busy = generating || unlocking;
-  const canUnlock = Boolean(master) && !stale && !busy;
+  const canUnlock = Boolean(activeId) && !stale && !busy;
 
   return (
     <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1.4fr_1fr]">
@@ -375,7 +341,7 @@ export function PreviewFlow() {
         <p className="mt-3 flex items-start gap-2 rounded-tile border-2 border-line bg-paper p-3 text-sm text-muted">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-grape" strokeWidth={2.2} />
           {WATERMARK_PREVIEW
-            ? "Aperçu avec filigrane. Débloque la version HD pour imprimer."
+            ? "Aperçu avec filigrane. Il est gardé dans « Mes coloriages » : tu peux le débloquer plus tard, sans le redessiner."
             : "Filigrane désactivé (mode test) : clic droit sur l'image pour l'enregistrer."}
         </p>
 
@@ -502,11 +468,11 @@ export function PreviewFlow() {
                   Cette combinaison n&apos;a pas encore été dessinée.
                 </p>
               )}
-              {cachedKeys.length > 1 && (
+              {tested.size > 1 && (
                 <p className="mt-2 flex items-center gap-1.5 text-xs text-muted">
                   <Sparkles className="h-3.5 w-3.5 text-grape" strokeWidth={2.2} />
-                  {cachedKeys.length} versions en mémoire : y revenir est
-                  instantané.
+                  {tested.size} versions gardées dans « Mes coloriages » : y
+                  revenir est instantané.
                 </p>
               )}
             </div>

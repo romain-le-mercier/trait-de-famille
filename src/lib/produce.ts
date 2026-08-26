@@ -1,4 +1,4 @@
-import { canvasToBlob, createCanvas, loadBitmap } from "./image";
+import { applyWatermark, canvasToBlob, createCanvas, loadBitmap } from "./image";
 
 export interface Artwork {
   /** Le fichier livré : exactement l'image générée, sans retouche. */
@@ -9,14 +9,23 @@ export interface Artwork {
 }
 
 /**
- * Prépare le coloriage déjà généré pour la livraison et la galerie.
+ * Prépare un dessin déjà généré pour la galerie et la livraison.
  *
  * Rien n'est régénéré ici : on empaquette l'image que l'utilisateur a validée
- * dans l'aperçu, et on en tire une vignette légère pour la galerie.
+ * dans l'aperçu, et on en tire une vignette légère.
+ *
+ * `watermark` sert aux essais non débloqués : la vignette de la galerie porte
+ * alors le même filigrane que l'aperçu. Le fichier `hd`, lui, n'est jamais
+ * altéré — c'est le déblocage qui donne le droit d'y accéder, et remplacer la
+ * vignette suffit à le refléter.
  */
-export async function packageArtwork(master: Blob): Promise<Artwork> {
+export async function packageArtwork(
+  master: Blob,
+  options: { watermark?: boolean } = {},
+): Promise<Artwork> {
   const bitmap = await loadBitmap(master);
   const thumbCanvas = makeThumb(bitmap, 560);
+  if (options.watermark) applyWatermark(thumbCanvas);
   const thumb = await canvasToBlob(thumbCanvas, "image/webp", 0.85);
   const width = bitmap.width;
   const height = bitmap.height;

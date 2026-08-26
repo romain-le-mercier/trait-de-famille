@@ -13,15 +13,24 @@ export interface Draft {
   height: number;
   settings: LineArtSettings;
   createdAt: number;
-  /** Passe à true une fois le coloriage débloqué (crédit consommé). */
-  unlocked: boolean;
 }
 
+/**
+ * Un dessin produit par le modèle.
+ *
+ * Il entre dans la galerie dès la génération, verrouillé : c'est un essai,
+ * filigrané. `unlocked` passe à true quand un crédit a été dépensé pour lui —
+ * le fichier livré est alors exactement le même, jamais régénéré. C'est tout
+ * l'intérêt de le garder : le modèle ne redonne pas deux fois la même image.
+ */
 export interface GalleryItem {
   id: string;
+  /** La photo dont il est issu : plusieurs essais peuvent la partager. */
+  draftId: string;
   fileName: string;
   createdAt: number;
   settings: LineArtSettings;
+  unlocked: boolean;
 }
 
 export interface AccountState {
@@ -50,6 +59,13 @@ interface AppState {
   items: GalleryItem[];
   draft: Draft | null;
 
+  /**
+   * L'essai que l'utilisateur veut débloquer, mis de côté avant de partir
+   * payer. Il est persisté, donc il survit à l'aller-retour vers Stripe : au
+   * retour, l'écran de remerciement sait quel dessin livrer.
+   */
+  pendingUnlockId: string | null;
+
   /** Derniers réglages choisis, réappliqués à la prochaine photo. */
   lastSettings: SettingsPreset;
 
@@ -62,8 +78,10 @@ interface AppState {
   patchDraft: (patch: Partial<Draft>) => void;
   setSettings: (settings: LineArtSettings) => void;
   clearDraft: () => void;
-  addItem: (item: GalleryItem) => void;
+  upsertItem: (item: GalleryItem) => void;
+  markUnlocked: (id: string) => void;
   removeItem: (id: string) => void;
+  setPendingUnlock: (id: string | null) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -71,6 +89,7 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       items: [],
       draft: null,
+      pendingUnlockId: null,
       account: EMPTY_ACCOUNT,
       lastSettings: {
         detail: DEFAULT_SETTINGS.detail,
@@ -113,20 +132,53 @@ export const useAppStore = create<AppState>()(
 
       clearDraft: () => set({ draft: null }),
 
-      addItem: (item) => set((s) => ({ items: [item, ...s.items] })),
+      // Le plus récent en tête : c'est aussi ce qui fait que la recherche
+      // d'un essai par réglages tombe sur la dernière version générée.
+      upsertItem: (item) =>
+        set((s) => ({
+          items: [item, ...s.items.filter((existing) => existing.id !== item.id)],
+        })),
+
+      markUnlocked: (id) =>
+        set((s) => ({
+          items: s.items.map((item) =>
+            item.id === id ? { ...item, unlocked: true } : item,
+          ),
+        })),
 
       removeItem: (id) =>
         set((s) => ({ items: s.items.filter((item) => item.id !== id) })),
+
+      setPendingUnlock: (id) => set({ pendingUnlockId: id }),
     }),
     {
       name: "trait-de-famille",
-      version: 1,
+      version: 2,
       // Le solde de crédits vient du serveur : rien de sensible en localStorage.
       partialize: (state) => ({
         items: state.items,
         draft: state.draft,
         lastSettings: state.lastSettings,
+        pendingUnlockId: state.pendingUnlockId,
       }),
+      // Sans fonction de migration, Zustand jette tout l'état persisté quand
+      // la version change : les galeries existantes disparaîtraient.
+      migrate: (persisted, version) => {
+        const state = persisted as Partial<AppState> & {
+          items?: (Omit<GalleryItem, "draftId" | "unlocked"> &
+            Partial<Pick<GalleryItem, "draftId" | "unlocked">>)[];
+        };
+        // Jusqu'à la v1, seuls les coloriages payés entraient dans la galerie,
+        // et ils portaient l'identifiant de leur brouillon.
+        if (version < 2) {
+          state.items = (state.items ?? []).map((item) => ({
+            ...item,
+            draftId: item.draftId ?? item.id,
+            unlocked: true,
+          }));
+        }
+        return state as AppState;
+      },
     },
   ),
 );
