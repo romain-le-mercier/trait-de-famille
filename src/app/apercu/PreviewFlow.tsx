@@ -66,6 +66,11 @@ export function PreviewFlow() {
   const [error, setError] = useState<string | null>(null);
   const [engineReady, setEngineReady] = useState<boolean | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
+  /**
+   * Le dessin affiché sort de la galerie, il n'a pas été produit à l'instant.
+   * Sans le dire, un résultat instantané passerait pour un bug.
+   */
+  const [reused, setReused] = useState(false);
 
   const runRef = useRef(0);
   const urlsRef = useRef<string[]>([]);
@@ -74,7 +79,7 @@ export function PreviewFlow() {
 
   /** Combinaisons déjà dessinées pour cette photo : y revenir est gratuit. */
   const tested = useMemo(
-    () => (draft ? testedKeys(items, draft.id) : new Set<string>()),
+    () => (draft ? testedKeys(items, draft.photoKey) : new Set<string>()),
     [items, draft],
   );
 
@@ -138,10 +143,11 @@ export function PreviewFlow() {
           },
         });
         if (run !== runRef.current) return;
+        setReused(false);
         // Le dessin rejoint la galerie tout de suite, verrouillé : il pourra
         // être débloqué plus tard sans repasser par le modèle.
         const id = await saveTest({
-          draftId: draft.id,
+          photoKey: draft.photoKey,
           fileName: draft.fileName,
           settings: target,
           master: result.blob,
@@ -200,17 +206,18 @@ export function PreviewFlow() {
     if (activeKey === wanted) return;
     let cancelled = false;
     (async () => {
-      const known = findTest(draft.id, draft.settings);
+      const known = findTest(draft.photoKey, draft.settings);
       if (!known) return;
       const stored = await getArtworkHd(known.id);
       if (cancelled || !stored) return;
+      setReused(true);
       await show(stored, wanted, known.id);
     })();
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, wanted, draft?.id, generating, unlocking]);
+  }, [hydrated, wanted, draft?.photoKey, generating, unlocking]);
 
   const unlock = useCallback(async () => {
     if (!activeId) return;
@@ -337,6 +344,14 @@ export function PreviewFlow() {
             )}
           </div>
         </div>
+
+        {reused && !busy && (
+          <p className="mt-3 flex items-start gap-2 rounded-tile border-2 border-grape bg-grape-soft p-3 text-sm font-semibold">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-grape" strokeWidth={2.2} />
+            Ce dessin existait déjà pour cette photo et ces réglages : on te le
+            réaffiche tel quel, sans nouvelle génération.
+          </p>
+        )}
 
         <p className="mt-3 flex items-start gap-2 rounded-tile border-2 border-line bg-paper p-3 text-sm text-muted">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-grape" strokeWidth={2.2} />

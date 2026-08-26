@@ -6,7 +6,7 @@ import { AlertTriangle, Lightbulb, Lock, Wand2 } from "lucide-react";
 import { Dropzone } from "@/components/flow/Dropzone";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { loadBitmap } from "@/lib/image";
+import { loadBitmap, photoFingerprint } from "@/lib/image";
 import { makeId, newDraftSettings, useAppStore } from "@/lib/store";
 import { clearDraft, saveDraftPhoto } from "@/lib/storage";
 
@@ -67,11 +67,13 @@ export function UploadFlow() {
     if (!picked) return;
     setSubmitting(true);
     try {
-      // Nouvelle photo : les dessins en cache ne la concernent plus.
       await clearDraft();
       await saveDraftPhoto(picked.file);
       setDraft({
         id: makeId(),
+        // Si cette photo a déjà été transformée, l'aperçu retrouvera ses
+        // dessins grâce à cette empreinte, sans rappeler le modèle.
+        photoKey: await photoFingerprint(picked.file),
         fileName: picked.file.name,
         width: picked.width,
         height: picked.height,

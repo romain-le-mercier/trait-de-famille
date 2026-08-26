@@ -27,12 +27,12 @@ const MAX_TESTS = 24;
  * gardé.
  */
 export async function saveTest(params: {
-  draftId: string;
+  photoKey: string;
   fileName: string;
   settings: LineArtSettings;
   master: Blob;
 }): Promise<string | null> {
-  const { draftId, fileName, settings, master } = params;
+  const { photoKey, fileName, settings, master } = params;
   const id = makeId();
 
   const artwork = await packageArtwork(master, { watermark: true });
@@ -47,12 +47,12 @@ export async function saveTest(params: {
 
   // Regénérer les mêmes réglages remplace l'essai précédent — mais jamais un
   // coloriage payé : ce fichier-là ne nous appartient plus.
-  const previous = findTest(draftId, settings);
+  const previous = findTest(photoKey, settings);
   if (previous && !previous.unlocked) await forget(previous.id);
 
   useAppStore.getState().upsertItem({
     id,
-    draftId,
+    photoKey,
     fileName,
     settings,
     createdAt: Date.now(),
@@ -64,26 +64,29 @@ export async function saveTest(params: {
 }
 
 /**
- * Le dessin déjà produit pour ces réglages, s'il existe encore. C'est ce qui
- * rend gratuit et instantané le retour sur une combinaison déjà essayée.
+ * Le dessin déjà produit pour cette photo et ces réglages, s'il existe encore.
+ *
+ * C'est ce qui rend gratuit et instantané le retour sur une combinaison déjà
+ * essayée — et, la clé étant l'empreinte du fichier, le redépôt d'une photo
+ * déjà transformée.
  */
 export function findTest(
-  draftId: string,
+  photoKey: string,
   settings: LineArtSettings,
 ): GalleryItem | undefined {
   const key = settingsKey(settings);
   return useAppStore
     .getState()
     .items.find(
-      (item) => item.draftId === draftId && settingsKey(item.settings) === key,
+      (item) => item.photoKey === photoKey && settingsKey(item.settings) === key,
     );
 }
 
 /** Les combinaisons de réglages déjà dessinées pour cette photo. */
-export function testedKeys(items: GalleryItem[], draftId: string): Set<string> {
+export function testedKeys(items: GalleryItem[], photoKey: string): Set<string> {
   return new Set(
     items
-      .filter((item) => item.draftId === draftId)
+      .filter((item) => item.photoKey === photoKey)
       .map((item) => settingsKey(item.settings)),
   );
 }

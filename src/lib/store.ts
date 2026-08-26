@@ -7,6 +7,12 @@ import { DEFAULT_SETTINGS, type LineArtSettings } from "./lineart/types";
 
 export interface Draft {
   id: string;
+  /**
+   * Empreinte du contenu de la photo. Redéposer le même fichier redonne la
+   * même clé, donc les dessins déjà produits sont retrouvés au lieu d'être
+   * regénérés.
+   */
+  photoKey: string;
   fileName: string;
   /** Dimensions de la photo source, après orientation EXIF. */
   width: number;
@@ -26,7 +32,7 @@ export interface Draft {
 export interface GalleryItem {
   id: string;
   /** La photo dont il est issu : plusieurs essais peuvent la partager. */
-  draftId: string;
+  photoKey: string;
   fileName: string;
   createdAt: number;
   settings: LineArtSettings;
@@ -83,6 +89,14 @@ interface AppState {
   removeItem: (id: string) => void;
   setPendingUnlock: (id: string | null) => void;
 }
+
+/**
+ * Une entrée de galerie telle qu'elle a pu être écrite par une version
+ * antérieure : `draftId` a été renommé `photoKey`, et `unlocked` n'existait
+ * pas. C'est la forme que la migration reçoit et produit.
+ */
+type LegacyItem = Omit<GalleryItem, "photoKey" | "unlocked"> &
+  Partial<Pick<GalleryItem, "photoKey" | "unlocked">> & { draftId?: string };
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -153,7 +167,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "trait-de-famille",
-      version: 2,
+      version: 3,
       // Le solde de crédits vient du serveur : rien de sensible en localStorage.
       partialize: (state) => ({
         items: state.items,
@@ -164,20 +178,36 @@ export const useAppStore = create<AppState>()(
       // Sans fonction de migration, Zustand jette tout l'état persisté quand
       // la version change : les galeries existantes disparaîtraient.
       migrate: (persisted, version) => {
-        const state = persisted as Partial<AppState> & {
-          items?: (Omit<GalleryItem, "draftId" | "unlocked"> &
-            Partial<Pick<GalleryItem, "draftId" | "unlocked">>)[];
+        const state = persisted as Omit<Partial<AppState>, "items" | "draft"> & {
+          items?: LegacyItem[];
+          draft?: (Draft & { photoKey?: string }) | null;
         };
-        // Jusqu'à la v1, seuls les coloriages payés entraient dans la galerie,
-        // et ils portaient l'identifiant de leur brouillon.
+
+        let items = state.items ?? [];
+        let draft = state.draft ?? null;
+
+        // Jusqu'à la v1, seuls les coloriages payés entraient dans la galerie.
         if (version < 2) {
-          state.items = (state.items ?? []).map((item) => ({
-            ...item,
-            draftId: item.draftId ?? item.id,
-            unlocked: true,
-          }));
+          items = items.map((item) => ({ ...item, unlocked: true }));
         }
-        return state as AppState;
+
+        // En v2, les dessins étaient groupés par brouillon ; en v3 ils le sont
+        // par empreinte de photo, pour retrouver ceux d'un fichier redéposé.
+        // Les anciens gardent leur identifiant de brouillon : il ne
+        // correspondra à aucune empreinte, ils ne seront donc jamais proposés
+        // comme doublon — mais ils restent tous là.
+        if (version < 3) {
+          items = items.map(({ draftId, ...item }) => ({
+            ...item,
+            photoKey: item.photoKey ?? draftId ?? item.id,
+          }));
+          // Le brouillon en cours, lui, n'a pas d'empreinte. On l'abandonne
+          // plutôt que d'inventer une clé qui ferait tomber sur le dessin
+          // d'une autre photo : l'utilisateur redépose la sienne.
+          if (draft && !draft.photoKey) draft = null;
+        }
+
+        return { ...state, items, draft } as AppState;
       },
     },
   ),

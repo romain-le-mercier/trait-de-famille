@@ -31,6 +31,31 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
+/**
+ * Empreinte du contenu d'une photo.
+ *
+ * Deux dépôts du même fichier donnent la même clé : c'est ce qui permet de
+ * retrouver un coloriage déjà produit au lieu de rappeler le modèle. La
+ * comparaison est exacte, à l'octet près — une photo réenregistrée ou
+ * recompressée est une photo différente, et c'est voulu : mieux vaut
+ * redessiner que servir le coloriage d'une autre image.
+ *
+ * `crypto.subtle` n'existe qu'en contexte sécurisé (HTTPS ou localhost). En
+ * son absence on renvoie une clé unique : la déduplication ne joue pas, mais
+ * rien ne casse.
+ */
+export async function photoFingerprint(blob: Blob): Promise<string> {
+  if (!globalThis.crypto?.subtle) return `sans-empreinte-${Date.now()}`;
+  try {
+    const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
+    return Array.from(new Uint8Array(digest), (byte) =>
+      byte.toString(16).padStart(2, "0"),
+    ).join("");
+  } catch {
+    return `sans-empreinte-${Date.now()}`;
+  }
+}
+
 /** Décode un fichier image en respectant l'orientation EXIF. */
 export async function loadBitmap(blob: Blob): Promise<ImageBitmap> {
   try {

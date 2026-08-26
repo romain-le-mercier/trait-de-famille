@@ -174,9 +174,16 @@ Conséquence : changer un réglage ne relance pas la génération automatiquemen
 L'interface signale que le dessin n'est plus à jour et propose un bouton
 explicite — chaque appel coûte, autant qu'il soit voulu.
 
-**Chaque version générée est retrouvée par signature de réglages**
-(`settingsKey`). Revenir sur une combinaison déjà essayée — Enfant → Ado →
-Enfant — la réaffiche instantanément et sans nouvel appel.
+**Chaque version générée est retrouvée par photo + signature de réglages.** La
+photo est identifiée par l'empreinte SHA-256 de son contenu (`photoFingerprint`,
+`Draft.photoKey`), pas par le dépôt : revenir sur une combinaison déjà essayée —
+Enfant → Ado → Enfant — *et* redéposer un fichier déjà transformé réaffichent le
+dessin instantanément, sans appel au modèle ni doublon dans la galerie. L'aperçu
+le signale, sans quoi un résultat immédiat passerait pour un bug.
+
+La comparaison est exacte, à l'octet près. Une photo réenregistrée ou
+recompressée est une photo différente, et c'est voulu : mieux vaut redessiner
+que risquer de servir le coloriage d'une autre image.
 
 ## Architecture
 
