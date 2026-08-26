@@ -11,6 +11,7 @@ const LEGAL = [
 
 /** Liens vers le contenu éditorial : la seule porte d'entrée organique. */
 const RESSOURCES = [
+  { href: "/coloriages", label: "Coloriages gratuits à imprimer" },
   { href: "/guides", label: "Tous les guides" },
   ...guidesByDate()
     .slice(0, 3)
@@ -31,7 +32,7 @@ export function SiteFooter() {
           </div>
 
           <nav className="text-sm">
-            <p className="mb-3 font-display font-bold">Guides</p>
+            <p className="mb-3 font-display font-bold">Ressources</p>
             <ul className="space-y-2 font-semibold text-muted">
               {RESSOURCES.map((link) => (
                 <li key={link.href}>

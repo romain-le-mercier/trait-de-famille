@@ -40,6 +40,7 @@ indispensable**, le reste dépend de ce que tu veux tester.
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Connexion Google | Personne ne peut acheter |
 | `AUTH_SECRET` | Signature des sessions (`openssl rand -base64 32`) | Le SSO est désactivé |
 | `AUTH_URL` | Force l'origine OAuth ; sinon dérivée de `NEXT_PUBLIC_SITE_URL` | Rien — c'est le cas normal |
+| `ADMIN_EMAILS` | Adresses autorisées sur `/admin` | L'administration répond 404 pour tout le monde |
 | `STRIPE_SECRET_KEY` | Active le Checkout Stripe | L'écran de déblocage annonce « Paiement indisponible » |
 | `STRIPE_WEBHOOK_SECRET` | Signature du webhook | Aucun compte n'est crédité après paiement |
 
@@ -185,12 +186,84 @@ La comparaison est exacte, à l'octet près. Une photo réenregistrée ou
 recompressée est une photo différente, et c'est voulu : mieux vaut redessiner
 que risquer de servir le coloriage d'une autre image.
 
+## Bibliothèque de coloriages gratuits
+
+`/coloriages` est une section d'acquisition : des dessins gratuits à imprimer,
+qui captent une demande de recherche massive et ancienne en français. Le
+public qui la cherche — un parent, une imprimante, un enfant qui colorie — est
+exactement l'acheteur du produit payant, d'où l'accroche « et si c'était ton
+enfant ? » sur chaque page.
+
+**L'essentiel du trafic vient de Google Images**, pas des résultats classiques.
+D'où le nom de fichier descriptif (`coloriage-<sujet>-a-imprimer.<ext>`), le
+`alt`, le `ImageObject` en JSON-LD et l'extension qui suit le format réellement
+renvoyé par le modèle — une URL en `.png` qui sert du JPEG ment sur son
+contenu, et c'est cette URL qui est indexée.
+
+### Une séparation à tenir
+
+- **Les sujets sont dans le dépôt** (`src/lib/coloriages/themes.ts`) : quoi
+  dessiner, sous quel titre, avec quelle introduction. C'est de l'éditorial, ça
+  se relit en revue de code et ça se versionne.
+- **Les dessins sont en base**, produits depuis `/admin/coloriages`.
+
+`intro` doit dire quelque chose de vrai et de particulier à chaque dessin.
+Sans ça, mille pages ne se distinguent que par leur image, et Google les traite
+pour ce qu'elles sont — du remplissage.
+
+### Rien ne paraît sans relecture
+
+Un dessin généré est un **brouillon**. Il n'existe pour le public qu'une fois
+publié depuis l'administration, un par un, avec l'image sous les yeux. Ce n'est
+pas une précaution de confort :
+
+- un coloriage aux zones ouvertes, gris ou tramé est inutilisable, et pire que
+  pas de page du tout ;
+- Google sanctionne depuis 2024 le **contenu produit en masse** sans valeur
+  ajoutée. Une bibliothèque générée sans regard humain en a exactement la
+  forme, et une sanction toucherait aussi les pages de vente.
+
+Régénérer un dessin déjà publié le **repasse en brouillon** : on ne remplace
+pas sans le voir une image déjà en ligne.
+
+### Administration
+
+`/admin/coloriages`, réservée aux adresses de `ADMIN_EMAILS`. **Fermée par
+défaut** : sans la variable, elle répond 404 pour tout le monde. Une porte qui
+s'ouvre quand la configuration manque est une porte ouverte le jour où la
+variable saute.
+
+Le lot est enchaîné **côté client, un sujet à la fois**, avec un bouton
+d'arrêt. Chaque appel coûte : une boucle côté serveur rendrait la dépense
+invisible et impossible à interrompre. Un échec arrête tout — si le moteur est
+en panne, continuer ne ferait qu'aligner trente erreurs.
+
+Publier vide le cache des pages concernées (`revalidatePath`), sinon le dessin
+n'apparaîtrait qu'au prochain déploiement.
+
+### Ce qu'il faudra reprendre
+
+- **Les images sont dans Postgres.** Tenable pour quelques centaines de
+  dessins, et ça évite de monter du stockage objet pour un lot pilote. Au-delà,
+  il faut les sortir vers S3/R2 : les sauvegardes deviendraient énormes.
+- **Les pages sont rendues à la demande** (`force-dynamic`) parce que la base
+  n'est pas joignable au build. Le poids réel — les images — est mis en cache
+  une journée par sa propre route. Si le trafic grossit, passer en ISR.
+- **Ne pas produire mille pages avant d'en avoir mesuré cinquante.** La seule
+  métrique qui compte au départ est le taux de clic de ces pages vers `/creer`.
+  Si beaucoup de visites ne donnent rien, le problème est l'accroche, pas le
+  nombre de pages.
+
 ## Architecture
 
 ```
 src/app/                 routes (landing, creer, apercu, debloquer, merci, mes-coloriages, légal)
-src/app/api/generate/    le moteur : prompts + appel au modèle via LiteLLM
+src/app/api/generate/    prompts de conversion d'une photo
 src/app/api/             checkout Stripe, vérification de session, webhook
+src/app/coloriages/      bibliothèque gratuite (hub, thèmes, dessins, images)
+src/app/admin/           génération et relecture de la bibliothèque
+src/lib/coloriages/      sujets et prompts de la bibliothèque
+src/lib/server/litellm.ts  le seul dialogue avec le moteur d'images
 src/lib/lineart/         appel du moteur côté client + types de réglages
 src/lib/server/          comptes et crédits dans Postgres
 src/lib/artworks.ts      vie d'un dessin : essai, déblocage, oubli
@@ -228,5 +301,15 @@ scripts/migrate.mjs      exécuteur de migrations
   champs `[à compléter]` attendent les infos de la société.
 - Illustrations de la landing : ce sont des SVG de démonstration, pas de vraies
   photos clients.
+- **Résolution des coloriages gratuits.** Le modèle renvoie environ 864×1248,
+  soit près de trois fois moins qu'un A4 à 300 ppp. C'est acceptable pour du
+  gratuit, mais l'agrandissement se voit à l'impression. Il renvoie aussi du
+  JPEG, mal adapté à un trait noir sur blanc : convertir en PNG n'y changerait
+  rien, la perte est déjà faite. À traiter avec le point « résolution
+  d'impression » ci-dessus si ça gêne.
+- **Photos de démonstration.** L'avant/après de `EtSiCetaitToi` montre des
+  personnes identifiables, dont un enfant, et il apparaît désormais sur chaque
+  page de la bibliothèque : la question des droits de publication devient plus
+  pressante qu'elle ne l'était sur la seule landing.
 - La galerie est locale à l'appareil : si on veut qu'elle suive le compte, il
   faut un stockage d'objets (S3, R2…) pour les PNG.

@@ -11,6 +11,9 @@ const LINKS = [
   { href: "/#exemples", label: "Exemples" },
   { href: "/#comment-ca-marche", label: "Comment ça marche" },
   { href: "/#tarifs", label: "Tarifs" },
+  // Lien présent sur toutes les pages : c'est ce qui donne à une section
+  // toute neuve l'autorité interne dont elle a besoin pour être explorée.
+  { href: "/coloriages", label: "Coloriages gratuits" },
   { href: "/guides", label: "Guides" },
   { href: "/mes-coloriages", label: "Mes coloriages" },
 ];

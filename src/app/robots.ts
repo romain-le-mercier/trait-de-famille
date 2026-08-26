@@ -11,7 +11,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: "/api/",
+      // /admin est déjà fermé par une liste d'adresses et répond 404 : c'est
+      // la ceinture, ceci est la bretelle.
+      disallow: ["/api/", "/admin"],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

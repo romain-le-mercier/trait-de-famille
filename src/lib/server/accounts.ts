@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import { getPool } from "./pool";
 
 /**
  * Comptes et solde de crédits, dans Postgres.
@@ -16,32 +16,6 @@ import { Pool } from "pg";
  * Le schéma est dans `migrations/`, appliqué au démarrage par
  * `scripts/migrate.mjs`.
  */
-
-const connectionString = process.env.DATABASE_URL;
-
-/**
- * En développement, Next recharge ce module à chaque modification : sans ce
- * cache, chaque rechargement ouvrirait un pool de plus jusqu'à saturer les
- * connexions de la base.
- */
-const globalForPool = globalThis as unknown as { traitDeFamillePool?: Pool };
-
-function getPool(): Pool {
-  if (!connectionString) {
-    throw new Error(
-      "DATABASE_URL est absente : impossible de lire ou d'écrire les crédits.",
-    );
-  }
-  globalForPool.traitDeFamillePool ??= new Pool({
-    connectionString,
-    max: 10,
-    idleTimeoutMillis: 30_000,
-    ssl: /[?&]sslmode=(require|prefer)/.test(connectionString)
-      ? { rejectUnauthorized: false }
-      : undefined,
-  });
-  return globalForPool.traitDeFamillePool;
-}
 
 export interface Purchase {
   sessionId: string;

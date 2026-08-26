@@ -1,21 +1,17 @@
 import { NextResponse } from "next/server";
+import {
+  engineConfigured,
+  generateImage,
+  isNetworkError,
+} from "@/lib/server/litellm";
 
 /**
- * Moteur de rendu — c'est ici que le coloriage est produit.
+ * Moteur de rendu — c'est ici que le coloriage personnalisé est produit.
  *
- * Une seule voie : LiteLLM, un proxy devant le modèle d'images. Aucun repli
- * n'est prévu, et c'est délibéré — un fournisseur de secours appelé en direct
- * échapperait à la journalisation des appels et du coût, qui est la raison
- * d'être du proxy. Si LiteLLM n'est pas configuré ou ne répond pas, l'app le
- * dit à l'utilisateur plutôt que de contourner.
+ * Le dialogue avec le proxy vit dans `src/lib/server/litellm.ts`, partagé avec
+ * la bibliothèque de coloriages gratuits. Ce fichier ne garde que ce qui lui
+ * est propre : les prompts de conversion d'une photo.
  */
-
-function engineConfigured(): boolean {
-  return Boolean(process.env.LITELLM_BASE_URL && process.env.LITELLM_API_KEY);
-}
-
-/** Au-delà, on considère que le moteur ne répondra pas. */
-const ENGINE_TIMEOUT_MS = 120_000;
 
 const PROMPTS = {
   base:
@@ -73,7 +69,10 @@ export async function POST(request: Request) {
   try {
     const bytes = Buffer.from(await photo.arrayBuffer());
     const mimeType = photo.type || "image/jpeg";
-    const result = await runLiteLLM(bytes, mimeType, prompt);
+    const result = await generateImage({
+      prompt,
+      source: { bytes, mimeType },
+    });
 
     // Cette ligne est la seule preuve, côté serveur, qu'une génération est
     // allée au bout. Si elle manque alors que le proxy a facturé l'appel,
@@ -98,11 +97,9 @@ export async function POST(request: Request) {
     // « fetch failed » ne veut rien dire pour un visiteur, et le code réseau
     // sous-jacent (EAI_AGAIN, ECONNREFUSED…) est une information
     // d'infrastructure : elle reste dans les journaux.
-    const cause = (error as { cause?: NodeJS.ErrnoException } | undefined)?.cause;
-    const reseau = Boolean(cause?.code);
     return NextResponse.json(
       {
-        message: reseau
+        message: isNetworkError(error)
           ? "Le moteur de génération est injoignable. Réessaie dans un instant."
           : error instanceof Error
             ? error.message
@@ -111,98 +108,4 @@ export async function POST(request: Request) {
       { status: 502 },
     );
   }
-}
-
-interface GeneratedImage {
-  data: ArrayBuffer;
-  mimeType: string;
-}
-
-/** Décode une image renvoyée sous forme d'URL `data:` en un buffer. */
-function fromDataUri(uri: string): GeneratedImage | null {
-  const match = /^data:([^;,]+);base64,(.+)$/s.exec(uri);
-  if (!match) return null;
-  const buffer = Buffer.from(match[2], "base64");
-  return {
-    data: buffer.buffer.slice(
-      buffer.byteOffset,
-      buffer.byteOffset + buffer.byteLength,
-    ) as ArrayBuffer,
-    mimeType: match[1],
-  };
-}
-
-/**
- * Appel via LiteLLM, au format OpenAI `chat/completions`.
- *
- * LiteLLM n'accepte pas le format natif de Gemini pour ce modèle : sa route
- * de pass-through attend un nom de modèle sans préfixe, alors que les clés
- * sont autorisées sur `gemini/<modèle>`. On passe donc par le format OpenAI,
- * que le proxy traduit — et qui est de toute façon le seul chemin où l'usage
- * et le coût sont journalisés.
- *
- * L'image générée revient dans `message.images[]`, sous forme d'URL `data:`.
- */
-async function runLiteLLM(
-  bytes: Buffer,
-  mimeType: string,
-  prompt: string,
-): Promise<GeneratedImage> {
-  const base = process.env.LITELLM_BASE_URL!.replace(/\/$/, "");
-  const key = process.env.LITELLM_API_KEY!;
-  const model = process.env.LITELLM_MODEL ?? "gemini/gemini-3.1-flash-image-preview";
-
-  const response = await fetch(`${base}/v1/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
-    signal: AbortSignal.timeout(ENGINE_TIMEOUT_MS),
-    body: JSON.stringify({
-      model,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: prompt },
-            {
-              type: "image_url",
-              image_url: { url: `data:${mimeType};base64,${bytes.toString("base64")}` },
-            },
-          ],
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    // Le corps d'erreur du proxy nomme le modèle et les droits de la clé :
-    // il va dans les journaux du serveur, pas dans l'écran de l'utilisateur.
-    console.error("[generate:litellm]", response.status, await response.text());
-    throw new Error("Le moteur n'a pas répondu. Réessaie dans un instant.");
-  }
-
-  const payload = (await response.json()) as {
-    choices?: {
-      message?: {
-        content?: string | null;
-        images?: { image_url?: { url?: string }; url?: string }[];
-      };
-    }[];
-    usage?: { total_tokens?: number };
-  };
-
-  const message = payload.choices?.[0]?.message;
-  const candidate =
-    message?.images?.[0]?.image_url?.url ??
-    message?.images?.[0]?.url ??
-    (typeof message?.content === "string" && message.content.startsWith("data:")
-      ? message.content
-      : null);
-
-  if (!candidate) throw new Error("LiteLLM n'a pas renvoyé d'image");
-  const image = fromDataUri(candidate);
-  if (!image) throw new Error("Image LiteLLM illisible");
-  return image;
 }
