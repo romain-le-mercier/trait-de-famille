@@ -45,11 +45,14 @@ function errorCode(error: unknown): string {
 async function probe(base: string): Promise<Probe> {
   const result: Probe = { url: base };
 
-  // On résout avant de connecter : c'est le code DNS qui distingue « réseau
-  // Docker non partagé » (EAI_AGAIN, ENOTFOUND) d'un simple mauvais port.
-  // Sans ça, le délai d'abandon masque la vraie cause.
+  // On résout avant de connecter, et on liste *toutes* les adresses avec leur
+  // famille : c'est le code DNS qui distingue « réseau Docker non partagé »
+  // (EAI_AGAIN, ENOTFOUND) d'un mauvais port, et la présence d'une IPv6 qui
+  // explique un ECONNREFUSED sur tous les ports quand le service d'en face
+  // n'écoute qu'en IPv4.
   try {
-    result.dns = (await lookup(new URL(base).hostname)).address;
+    const adresses = await lookup(new URL(base).hostname, { all: true });
+    result.dns = adresses.map((a) => `IPv${a.family} ${a.address}`).join(", ");
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     result.dns = `échec (${code ?? "inconnu"})`;
