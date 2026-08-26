@@ -59,7 +59,7 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
           setBusy(true);
           void signIn("google");
         }}
-        className="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-white px-3 py-1.5 text-sm font-bold transition-colors hover:bg-paper disabled:opacity-50"
+        className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border-2 border-ink bg-white px-3 py-1.5 text-sm font-bold transition-colors hover:bg-paper disabled:opacity-50"
       >
         <LogIn className="h-4 w-4" strokeWidth={2.2} />
         <span className={compact ? "hidden sm:inline" : ""}>Se connecter</span>
