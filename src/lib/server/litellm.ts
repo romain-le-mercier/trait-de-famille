@@ -52,7 +52,30 @@ export async function generateImage(request: ImageRequest): Promise<GeneratedIma
       Authorization: `Bearer ${key}`,
     },
     signal: AbortSignal.timeout(TIMEOUT_MS),
-    body: JSON.stringify({ model, messages: [{ role: "user", content }] }),
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content }],
+      /**
+       * Le cache du proxy doit rester à l'écart.
+       *
+       * LiteLLM indexe ses réponses sur le corps de la requête. Or nos
+       * prompts sont déterministes : deux générations de suite pour le même
+       * sujet, ou pour la même photo avec les mêmes réglages, envoient un
+       * corps identique — et le proxy renvoie l'image précédente en quelques
+       * centièmes de seconde.
+       *
+       * C'est exactement ce qu'il ne faut pas ici. « Générer une autre
+       * version » et « Régénérer » n'ont de sens que s'ils redessinent : un
+       * cache les rend silencieusement inopérants, et l'utilisateur croit le
+       * bouton cassé. Aucun appel de cette application ne gagne à être mis en
+       * cache, puisqu'on ne redemande jamais la même image sans vouloir
+       * précisément qu'elle change.
+       *
+       * `no-store` évite en prime de remplir le cache du proxy de plusieurs
+       * mégaoctets de base64 qui ne seront jamais relus.
+       */
+      cache: { "no-cache": true, "no-store": true },
+    }),
   });
 
   if (!response.ok) {

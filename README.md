@@ -155,6 +155,14 @@ Gemini : celle-ci attend un nom de modèle sans préfixe alors que les clés son
 autorisées sur `gemini/<modèle>`, et répond 403. L'image générée revient dans
 `message.images[]`, sous forme d'URL `data:`.
 
+**Le cache du proxy est explicitement désactivé** (`cache: {"no-cache", "no-store"}`).
+LiteLLM indexe ses réponses sur le corps de la requête, et nos prompts sont
+déterministes : deux générations de suite pour le même sujet, ou pour la même
+photo avec les mêmes réglages, renvoyaient l'image précédente en quatre
+dixièmes de seconde. « Générer une autre version » et « Régénérer » n'ont de
+sens que s'ils redessinent — un cache les rend silencieusement inopérants et
+donne l'impression que le bouton est cassé.
+
 **Il n'y a aucun fournisseur de secours, et c'est voulu.** Un appel direct au
 modèle en cas de panne du proxy échapperait à ces relevés, ce qui viderait le
 dispositif de son intérêt. Si LiteLLM est absent ou muet, l'app le dit et ne
