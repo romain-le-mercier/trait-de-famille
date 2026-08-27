@@ -6,6 +6,7 @@ import { AlertTriangle, Lightbulb, Lock, Wand2 } from "lucide-react";
 import { Dropzone } from "@/components/flow/Dropzone";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { suivre } from "@/lib/analytics";
 import { loadBitmap, photoFingerprint } from "@/lib/image";
 import { makeId, newDraftSettings, useAppStore } from "@/lib/store";
 import { clearDraft, saveDraftPhoto } from "@/lib/storage";
@@ -56,6 +57,7 @@ export function UploadFlow() {
       urlRef.current = url;
       setPicked({ file, url, width: bitmap.width, height: bitmap.height });
       bitmap.close?.();
+      suivre("photo-deposee");
     } catch {
       setError("Cette image n'a pas fonctionné. Essaie une photo JPG ou PNG, plus nette.");
     } finally {

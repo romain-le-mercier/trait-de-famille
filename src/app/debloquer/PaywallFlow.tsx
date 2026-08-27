@@ -15,6 +15,7 @@ import {
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { IncludedList } from "@/components/marketing/Pricing";
+import { suivre } from "@/lib/analytics";
 import { cx } from "@/lib/cx";
 import { DEFAULT_PACK_ID, formatPrice, getPack, PACKS, unitPrice } from "@/lib/pricing";
 import { useAccount, useAppStore } from "@/lib/store";
@@ -72,6 +73,9 @@ export function PaywallFlow() {
         if (data?.stripeMissing) setStripe({ enabled: false, mode: null });
         throw new Error(data?.message ?? "Le paiement n'a pas pu démarrer.");
       }
+      // La sonde transmet en `keepalive` : l'événement part malgré la
+      // redirection immédiate vers Stripe.
+      suivre("paiement-ouvert", { pack: packId });
       window.location.href = data.url as string;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Paiement indisponible.");

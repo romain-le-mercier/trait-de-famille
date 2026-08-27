@@ -1,3 +1,4 @@
+import { suivre } from "./analytics";
 import { settingsKey, type LineArtSettings } from "./lineart/types";
 import { packageArtwork } from "./produce";
 import { makeId, useAppStore, type GalleryItem } from "./store";
@@ -137,6 +138,9 @@ export async function unlockArtwork(id: string): Promise<UnlockOutcome> {
     await saveThumb(id, artwork.thumb);
     useAppStore.getState().setCredits(credits);
     useAppStore.getState().markUnlocked(id);
+    // Un seul point de passage pour le déblocage : l'événement ne peut pas
+    // dériver des deux chemins qui y mènent (aperçu, ou retour de paiement).
+    suivre("coloriage-debloque");
     return { ok: true, credits };
   } catch (error) {
     if (consumed) {

@@ -16,6 +16,7 @@ import { Confetti } from "@/components/Confetti";
 import { GeneratingOverlay } from "@/components/flow/GeneratingOverlay";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card, Scribble } from "@/components/ui/Card";
+import { premiereFois, suivre } from "@/lib/analytics";
 import { unlockArtwork } from "@/lib/artworks";
 import { downloadBlob, loadBitmap, slugDate } from "@/lib/image";
 import { buildColoringPdf } from "@/lib/pdf";
@@ -72,6 +73,7 @@ export function SuccessFlow() {
           const data = await response.json().catch(() => null);
           if (response.ok && data?.paid) {
             useAppStore.getState().setCredits(Number(data.credits ?? 0));
+            if (premiereFois(`paiement:${sessionId}`)) suivre("paiement-reussi");
           } else if (data?.message) {
             setMessage(data.message);
           }

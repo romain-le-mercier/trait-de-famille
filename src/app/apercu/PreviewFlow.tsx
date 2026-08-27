@@ -21,6 +21,7 @@ import { GeneratingOverlay } from "@/components/flow/GeneratingOverlay";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Segmented } from "@/components/ui/Segmented";
+import { suivre } from "@/lib/analytics";
 import { applyWatermark, canvasToBlob, createCanvas, loadBitmap } from "@/lib/image";
 import { renderLineArt } from "@/lib/lineart/render";
 import {
@@ -109,22 +110,29 @@ export function PreviewFlow() {
    * `id` est nul quand le navigateur a refusé de le conserver : l'aperçu
    * s'affiche quand même, mais il n'y a rien à débloquer.
    */
-  const show = useCallback(async (blob: Blob, key: string, id: string | null) => {
-    setActiveId(id);
-    setActiveKey(key);
+  const show = useCallback(
+    async (blob: Blob, key: string, id: string | null, reprise: boolean) => {
+      setActiveId(id);
+      setActiveKey(key);
 
-    if (!WATERMARK_PREVIEW) {
-      setDisplayUrl(track(URL.createObjectURL(blob)));
-      return;
-    }
-    const bitmap = await loadBitmap(blob);
-    const canvas = createCanvas(bitmap.width, bitmap.height);
-    canvas.getContext("2d")!.drawImage(bitmap, 0, 0);
-    bitmap.close?.();
-    applyWatermark(canvas);
-    const watermarked = await canvasToBlob(canvas, "image/webp", 0.9);
-    setDisplayUrl(track(URL.createObjectURL(watermarked)));
-  }, []);
+      if (!WATERMARK_PREVIEW) {
+        setDisplayUrl(track(URL.createObjectURL(blob)));
+      } else {
+        const bitmap = await loadBitmap(blob);
+        const canvas = createCanvas(bitmap.width, bitmap.height);
+        canvas.getContext("2d")!.drawImage(bitmap, 0, 0);
+        bitmap.close?.();
+        applyWatermark(canvas);
+        const watermarked = await canvasToBlob(canvas, "image/webp", 0.9);
+        setDisplayUrl(track(URL.createObjectURL(watermarked)));
+      }
+
+      // `reprise` sépare la valeur livrée du coût engagé : un aperçu repris du
+      // cache n'a rien coûté. C'est ce qui rend lisible le coût par aperçu.
+      suivre("apercu-vu", { reprise });
+    },
+    [],
+  );
 
   const generate = useCallback(
     async (target: LineArtSettings) => {
@@ -144,6 +152,11 @@ export function PreviewFlow() {
         });
         if (run !== runRef.current) return;
         setReused(false);
+        suivre("generation-reussie", {
+          detail: target.detail,
+          trait: target.stroke,
+          "sans-decor": target.removeBackground ?? false,
+        });
         // Le dessin rejoint la galerie tout de suite, verrouillé : il pourra
         // être débloqué plus tard sans repasser par le modèle.
         const id = await saveTest({
@@ -152,9 +165,10 @@ export function PreviewFlow() {
           settings: target,
           master: result.blob,
         });
-        await show(result.blob, key, id);
+        await show(result.blob, key, id, false);
       } catch (caught) {
         if (run === runRef.current) {
+          suivre("generation-echouee");
           setError(
             caught instanceof Error
               ? caught.message
@@ -211,7 +225,7 @@ export function PreviewFlow() {
       const stored = await getArtworkHd(known.id);
       if (cancelled || !stored) return;
       setReused(true);
-      await show(stored, wanted, known.id);
+      await show(stored, wanted, known.id, true);
     })();
     return () => {
       cancelled = true;
