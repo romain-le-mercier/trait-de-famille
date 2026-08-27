@@ -135,10 +135,49 @@ même migration —, exécute chaque fichier dans sa propre transaction, et **so
 en erreur si quoi que ce soit échoue**, pour que le déploiement s'arrête au
 lieu de démarrer sur un schéma incomplet.
 
-Pour ajouter une migration : un nouveau fichier `migrations/002_*.sql`. Ils
+Pour ajouter une migration : un nouveau fichier `migrations/00N_*.sql`. Ils
 sont appliqués par ordre alphabétique, une seule fois, et enregistrés dans
 `schema_migrations`. Ne jamais modifier un fichier déjà déployé — il ne sera
 pas rejoué.
+
+### Quota d'aperçus gratuits
+
+L'aperçu est la seule porte du site qui dépense de l'argent sans en gagner :
+chaque appel est facturé par le fournisseur du modèle. `quotas_apercu` borne
+la casse — **3 par jour et par IP** pour un visiteur anonyme, **30 par jour et
+par compte** une fois connecté. La connexion Google fait office de second
+palier : elle coûte assez d'efforts pour qu'on puisse être généreux derrière,
+et un client qui a payé ne se heurte jamais au mur des anonymes.
+
+Le décompte tient dans une seule instruction, sur le modèle du débit de
+crédit :
+
+```sql
+INSERT INTO quotas_apercu (cle, jour, utilisees) VALUES ($1, CURRENT_DATE, 1)
+ON CONFLICT (cle, jour) DO UPDATE
+  SET utilisees = quotas_apercu.utilisees + 1
+  WHERE quotas_apercu.utilisees < $2
+RETURNING utilisees
+```
+
+Zéro ligne renvoyée signifie plafond atteint, et le compteur n'est pas gonflé
+par les refus. Vérifié sur une base jetable : dix requêtes simultanées avec un
+plafond de trois donnent exactement trois acceptations.
+
+Trois choix à connaître :
+
+- **le décompte passe avant l'appel au modèle**, après la validation de la
+  photo : une requête malformée ne coûte rien, donc ne consomme rien ;
+- **il est rendu si le modèle échoue** — personne ne perd son tour pour une
+  panne qui n'est pas la sienne ;
+- **base injoignable, on laisse passer.** Le garde protège un budget, pas une
+  donnée : un client qui a payé ne doit pas être bloqué par une panne
+  d'infrastructure. L'incident part dans les journaux.
+
+`GET /api/generate` renvoie `restant` et `plafond`. `restant: null` signifie
+qu'aucun garde n'est en place — développement local, ou base injoignable.
+C'est délibérément visible de l'extérieur : un quota inactif doit se constater,
+pas se supposer.
 
 ## Comment ça marche
 
@@ -262,6 +301,36 @@ n'apparaîtrait qu'au prochain déploiement.
   Si beaucoup de visites ne donnent rien, le problème est l'accroche, pas le
   nombre de pages.
 
+## Mesure d'audience
+
+Umami auto-hébergé, sans cookie ni donnée personnelle : pas de bandeau de
+consentement à afficher. La sonde n'est chargée que si le site tourne sur son
+vrai domaine (`NEXT_PUBLIC_SITE_URL`), pour que le développement local ne
+pollue pas les statistiques.
+
+Sept événements, dans `src/lib/analytics.ts` :
+
+| Événement | Où | Ce qu'il répond |
+| --- | --- | --- |
+| `photo-deposee` | `UploadFlow` | combien de visiteurs se lancent |
+| `generation-reussie` | `PreviewFlow` | combien d'appels au modèle sont facturés |
+| `generation-echouee` | `PreviewFlow` | coût engagé sans valeur livrée |
+| `apercu-vu` | `PreviewFlow` | valeur livrée ; `reprise: true` = servi sans rappeler le modèle |
+| `paiement-ouvert` | `PaywallFlow` | qui va jusqu'à Stripe, et pour quel pack |
+| `paiement-reussi` | `SuccessFlow` | la conversion |
+| `coloriage-debloque` | `unlockArtwork` | crédit dépensé, fichier livré |
+
+Deux règles tiennent le fichier : **la mesure ne casse jamais le produit** —
+chaque appel est sans effet si la sonde est absente ou bloquée, et protégé par
+un `try` ; **rien de personnel n'en sort** — pas de nom de fichier, pas
+d'identifiant de dessin, pas d'adresse e-mail.
+
+`coloriage-debloque` est posé dans `unlockArtwork` et non dans les écrans :
+deux chemins y mènent (l'aperçu, et le retour de paiement), un seul point de
+passage les couvre tous les deux. `paiement-reussi` est gardé par
+`premiereFois()` : `/merci` est rechargeable et la vérification est
+idempotente, donc sans garde un rechargement compterait un paiement de plus.
+
 ## Architecture
 
 ```
@@ -274,6 +343,8 @@ src/lib/coloriages/      sujets et prompts de la bibliothèque
 src/lib/server/litellm.ts  le seul dialogue avec le moteur d'images
 src/lib/lineart/         appel du moteur côté client + types de réglages
 src/lib/server/          comptes et crédits dans Postgres
+src/lib/server/quotas.ts   quota d'aperçus gratuits
+src/lib/analytics.ts     événements du tunnel envoyés à Umami
 src/lib/artworks.ts      vie d'un dessin : essai, déblocage, oubli
 src/lib/store.ts         état persisté (brouillon, galerie locale)
 src/lib/storage.ts       images en IndexedDB (photo, dessins)
@@ -291,8 +362,6 @@ scripts/migrate.mjs      exécuteur de migrations
   confidentialité (prestataire, localisation, conservation, non-réutilisation
   pour l'entraînement) et utiliser une offre payante du fournisseur, pas une
   offre gratuite qui réutilise les données.
-- **Anti-abus.** L'aperçu gratuit déclenche un appel facturé : prévoir un quota
-  par session/IP.
 - **Le filigrane est une barrière d'usage, pas de sécurité.** L'image sans
   filigrane est écrite dans l'IndexedDB du visiteur dès la génération — c'est
   ce qui permet de payer après coup sans redessiner. Quelqu'un d'outillé peut
