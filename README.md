@@ -367,13 +367,25 @@ scripts/migrate.mjs      exécuteur de migrations
   ce qui permet de payer après coup sans redessiner. Quelqu'un d'outillé peut
   l'en extraire. Si ça devient un problème, il faut garder le fichier côté
   serveur et ne servir que le filigrané avant paiement.
-- **Sauvegardes de la base.** C'est le seul endroit où vit de l'argent :
-  activer les sauvegardes planifiées côté hébergeur, et vérifier une
-  restauration au moins une fois.
-- **Retirer la sonde de réseau.** `src/app/api/diagnostic/route.ts` sert à
-  trouver l'adresse interne du proxy LiteLLM depuis le conteneur. Elle
-  n'existe que si `DIAGNOSTIC_TOKEN` est définie : vider la variable la
-  désactive, mais autant supprimer le fichier une fois la config arrêtée.
+- **Éprouver une restauration.** Les sauvegardes planifiées vers S3 sont en
+  place, mais aucune n'a jamais été restaurée : c'est donc une intention, pas
+  une sauvegarde. La rehearsal tient en quelques minutes — récupérer le dernier
+  dump, le charger dans un Postgres jetable, et compter les lignes :
+
+  ```bash
+  docker run -d --name tdf-restore -e POSTGRES_PASSWORD=x -e POSTGRES_DB=tdf \
+    postgres:16-alpine
+  cat sauvegarde.sql | docker exec -i tdf-restore psql -U postgres -d tdf
+  docker exec -i tdf-restore psql -U postgres -d tdf -c \
+    "SELECT (SELECT count(*) FROM accounts)  AS comptes,
+            (SELECT count(*) FROM purchases) AS achats,
+            (SELECT sum(credits) FROM accounts) AS credits_en_circulation;"
+  docker rm -f tdf-restore
+  ```
+
+  Les trois chiffres attendus sont connus : ce sont ceux de la production. S'ils
+  concordent, la sauvegarde est bonne — et on sait combien de temps ça prend,
+  ce qui est la seconde question qu'on se pose le jour où ça arrive.
 - Mentions légales, CGV, politique de confidentialité : les pages existent, les
   champs `[à compléter]` attendent les infos de la société.
 - Illustrations de la landing : ce sont des SVG de démonstration, pas de vraies
