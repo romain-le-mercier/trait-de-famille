@@ -327,6 +327,193 @@ const ANIMAUX: Sujet[] = [
   },
 ];
 
+/**
+ * Deuxième thème. Les dinosaures sont, après les animaux, ce qu'on cherche le
+ * plus en coloriage à imprimer — et la demande ne dépend d'aucune saison.
+ *
+ * Deux principes de composition, appris sur le lot animaux : un sujet par
+ * page, occupant vraiment la page ; et des noms savants toujours doublés du
+ * nom que les enfants emploient, parce que c'est celui qu'on tape.
+ */
+const DINOSAURES: Sujet[] = [
+  {
+    slug: "dinosaure",
+    nom: "un dinosaure sympathique debout sur deux pattes, gros yeux ronds, petite queue relevée",
+    titre: "Coloriage dinosaure à imprimer",
+    intro:
+      "Un dinosaure debout sur deux pattes, avec de gros yeux ronds et une queue relevée. C'est le plus simple de la série : quelques grandes zones, rien de pointu, idéal pour commencer.",
+    difficulte: "tout-petit",
+  },
+  {
+    slug: "t-rex",
+    nom: "un tyrannosaure rex debout, gueule ouverte montrant les dents, petits bras, longue queue en équilibre",
+    titre: "Coloriage T-Rex à imprimer",
+    intro:
+      "Le tyrannosaure en position d'attaque, gueule ouverte et queue tendue en équilibre. Les dents forment une rangée de petites zones : de quoi occuper les feutres fins après avoir rempli le corps.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "diplodocus",
+    nom: "un diplodocus de profil, très long cou tendu vers un arbre, longue queue horizontale",
+    titre: "Coloriage diplodocus à imprimer",
+    intro:
+      "Un diplodocus de profil, le cou tendu vers le feuillage d'un arbre. Le corps traverse toute la largeur de la feuille — c'est le dessin de la série qui se colorie le plus vite.",
+    difficulte: "tout-petit",
+  },
+  {
+    slug: "triceratops",
+    nom: "un tricératops de trois quarts, sa collerette osseuse et ses trois cornes bien visibles",
+    titre: "Coloriage tricératops à imprimer",
+    intro:
+      "Un tricératops de trois quarts, collerette déployée et trois cornes en avant. La collerette est découpée en plaques : elle appelle une couleur différente par plaque, et le dessin y gagne.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "stegosaure",
+    nom: "un stégosaure de profil, double rangée de plaques dorsales et quatre pointes au bout de la queue",
+    titre: "Coloriage stégosaure à imprimer",
+    intro:
+      "Un stégosaure de profil, avec sa double rangée de plaques sur le dos et les quatre pointes de sa queue. Les plaques sont des zones bien séparées : c'est le dessin parfait pour un dégradé.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "velociraptor",
+    nom: "un vélociraptor en course, penché vers l'avant, la grande griffe recourbée levée",
+    titre: "Coloriage vélociraptor à imprimer",
+    intro:
+      "Un vélociraptor en pleine course, le corps penché à l'horizontale et la grande griffe du pied relevée. Les pattes fines demandent une main déjà sûre.",
+    difficulte: "ado",
+  },
+  {
+    slug: "brachiosaure",
+    nom: "un brachiosaure vu de côté, pattes avant plus hautes que les pattes arrière, tête minuscule au bout d'un cou dressé",
+    titre: "Coloriage brachiosaure à imprimer",
+    intro:
+      "Un brachiosaure dressé, pattes avant plus longues que les arrière et petite tête tout en haut du cou. Le dessin se lit à la verticale : il remplit la feuille dans le sens de la hauteur.",
+    difficulte: "tout-petit",
+  },
+  {
+    slug: "spinosaure",
+    nom: "un spinosaure de profil, grande voile dorsale nervurée, museau allongé de crocodile",
+    titre: "Coloriage spinosaure à imprimer",
+    intro:
+      "Un spinosaure de profil, avec sa grande voile dorsale nervurée et son museau allongé de crocodile. La voile est divisée par ses nervures en une dizaine de bandes à colorier séparément.",
+    difficulte: "ado",
+  },
+  {
+    slug: "ankylosaure",
+    nom: "un ankylosaure vu de trois quarts, dos couvert de plaques, massue osseuse au bout de la queue",
+    titre: "Coloriage ankylosaure à imprimer",
+    intro:
+      "Un ankylosaure ramassé sur ses pattes, le dos couvert de plaques et la massue de sa queue posée au sol. La carapace forme une mosaïque de petites zones fermées.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "parasaurolophus",
+    nom: "un parasaurolophus debout, longue crête creuse recourbée vers l'arrière du crâne",
+    titre: "Coloriage parasaurolophus à imprimer",
+    intro:
+      "Un parasaurolophus debout, reconnaissable à la longue crête creuse qui part de son crâne vers l'arrière. Le corps est tout en courbes, sans un seul angle vif.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "pteranodon",
+    nom: "un ptéranodon en vol, ailes largement déployées, crête pointue à l'arrière de la tête",
+    titre: "Coloriage ptéranodon à imprimer",
+    intro:
+      "Un ptéranodon en vol, les ailes déployées d'un bord à l'autre de la feuille. Les membranes des ailes sont deux grandes surfaces vides : parfaites pour essayer un ciel au feutre.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "iguanodon",
+    nom: "un iguanodon debout, la pointe caractéristique de son pouce dressée",
+    titre: "Coloriage iguanodon à imprimer",
+    intro:
+      "Un iguanodon debout, avec la pointe de son pouce dressée comme un éperon — le détail qui l'a fait connaître. Le reste du dessin est volontairement sobre.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "allosaure",
+    nom: "un allosaure en marche, gueule entrouverte, deux petites crêtes au-dessus des yeux",
+    titre: "Coloriage allosaure à imprimer",
+    intro:
+      "Un allosaure en marche, la gueule entrouverte et deux petites crêtes au-dessus des yeux. Plus élancé que le tyrannosaure, avec des bras nettement plus longs.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "mosasaure",
+    nom: "un mosasaure nageant, corps allongé de lézard marin, quatre nageoires et queue puissante",
+    titre: "Coloriage mosasaure à imprimer",
+    intro:
+      "Un mosasaure qui file dans l'eau, corps de lézard allongé, quatre nageoires et une queue large. Ce n'était pas un dinosaure mais un reptile marin — la page le dit, autant l'apprendre en coloriant.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "plesiosaure",
+    nom: "un plésiosaure émergeant de l'eau, long cou dressé, corps trapu à quatre nageoires",
+    titre: "Coloriage plésiosaure à imprimer",
+    intro:
+      "Un plésiosaure qui sort la tête de l'eau au bout de son long cou, le corps porté par quatre nageoires. La ligne d'eau coupe le dessin en deux : deux ambiances à colorier différemment.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "dimetrodon",
+    nom: "un dimétrodon de profil, grande voile dorsale tendue sur des épines, pattes écartées de reptile",
+    titre: "Coloriage dimétrodon à imprimer",
+    intro:
+      "Un dimétrodon de profil, la voile de son dos tendue sur de longues épines. Il vivait bien avant les dinosaures : c'est le plus ancien de toute la série.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "archeopteryx",
+    nom: "un archéoptéryx perché sur une branche, ailes emplumées et longue queue à plumes",
+    titre: "Coloriage archéoptéryx à imprimer",
+    intro:
+      "Un archéoptéryx posé sur une branche, ailes emplumées et longue queue à plumes. Le plumage demande beaucoup de petits traits : c'est le dessin le plus exigeant de la série.",
+    difficulte: "ado",
+  },
+  {
+    slug: "bebe-dinosaure",
+    nom: "un bébé dinosaure qui sort d'un œuf fendu, coquille brisée autour de lui",
+    titre: "Coloriage bébé dinosaure à imprimer",
+    intro:
+      "Un bébé dinosaure qui sort d'un œuf fendu, entouré de morceaux de coquille. Les formes sont rondes et les zones larges : c'est le plus facile de la série avec le dinosaure sympathique.",
+    difficulte: "tout-petit",
+  },
+  {
+    slug: "oeuf-de-dinosaure",
+    nom: "trois œufs de dinosaure dans un nid de branchages, l'un d'eux commençant à se fendre",
+    titre: "Coloriage œuf de dinosaure à imprimer",
+    intro:
+      "Trois œufs posés dans un nid de branchages, dont un qui commence à se fendre. Les branches du nid forment un entrelacs à colorier au feutre fin, autour de trois grandes formes simples.",
+    difficulte: "tout-petit",
+  },
+  {
+    slug: "squelette-de-dinosaure",
+    nom: "un squelette complet de tyrannosaure monté comme dans un musée, chaque os détouré",
+    titre: "Coloriage squelette de dinosaure à imprimer",
+    intro:
+      "Un squelette de tyrannosaure monté comme au musée, chaque os détouré séparément. Des dizaines de petites zones : à réserver aux enfants qui aiment prendre leur temps.",
+    difficulte: "ado",
+  },
+  {
+    slug: "volcan-et-dinosaures",
+    nom: "un paysage préhistorique avec deux dinosaures au premier plan, fougères géantes et un volcan qui fume au loin",
+    titre: "Coloriage volcan et dinosaures à imprimer",
+    intro:
+      "Un paysage préhistorique complet : deux dinosaures au premier plan, des fougères géantes et un volcan qui fume à l'horizon. C'est le seul de la série qui raconte une scène entière.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "famille-de-dinosaures",
+    nom: "un grand dinosaure adulte accompagné de deux petits qui le suivent",
+    titre: "Coloriage famille de dinosaures à imprimer",
+    intro:
+      "Un grand dinosaure suivi de ses deux petits, tous les trois de profil. Les trois tailles permettent de choisir un feutre par personnage sans jamais déborder.",
+    difficulte: "tout-petit",
+  },
+];
+
 export const THEMES: Theme[] = [
   {
     slug: "animaux",
@@ -337,6 +524,16 @@ export const THEMES: Theme[] = [
     excerpt:
       "Du chat de salon à la baleine : des dessins au trait, à imprimer et à colorier tout de suite.",
     sujets: ANIMAUX,
+  },
+  {
+    slug: "dinosaures",
+    nom: "Dinosaures",
+    titre: "Coloriages de dinosaures à imprimer",
+    description:
+      "Des coloriages de dinosaures gratuits à imprimer en A4 : T-Rex, diplodocus, tricératops, stégosaure et une vingtaine d'autres. Du tout-petit au squelette de musée, contours nets et zones fermées.",
+    excerpt:
+      "Du T-Rex au bébé qui sort de l'œuf : vingt-deux dessins au trait, classés du plus simple au plus exigeant.",
+    sujets: DINOSAURES,
   },
 ];
 
