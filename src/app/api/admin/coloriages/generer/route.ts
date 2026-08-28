@@ -3,7 +3,6 @@ import { promptColoriage } from "@/lib/coloriages/prompts";
 import { getSujet, getTheme } from "@/lib/coloriages/themes";
 import { getAdmin } from "@/lib/server/admin";
 import { enregistrer } from "@/lib/server/coloriages";
-import { lireDimensions } from "@/lib/server/imageInfo";
 import {
   engineConfigured,
   generateImage,
@@ -46,18 +45,11 @@ export async function POST(request: Request) {
     });
     const donnees = Buffer.from(image.data);
 
-    const dimensions = lireDimensions(donnees);
-    if (!dimensions) {
-      // Mieux vaut refuser que stocker une taille inventée : elle servirait à
-      // réserver la place de l'image et casserait la mise en page.
-      throw new Error("Format d'image non reconnu.");
-    }
-
     await enregistrer({
       slug: sujet.slug,
       theme: theme.slug,
-      largeur: dimensions.largeur,
-      hauteur: dimensions.hauteur,
+      largeur: image.largeur,
+      hauteur: image.hauteur,
       mime: image.mimeType,
       donnees,
     });
@@ -66,14 +58,14 @@ export async function POST(request: Request) {
       `[bibliotheque] ${theme.slug}/${sujet.slug} généré en ` +
         `${((Date.now() - startedAt) / 1000).toFixed(1)}s · ` +
         `${Math.round(donnees.length / 1024)} Ko · ` +
-        `${dimensions.largeur}×${dimensions.hauteur}`,
+        `${image.largeur}×${image.hauteur}`,
     );
 
     return NextResponse.json({
       slug: sujet.slug,
       statut: "brouillon",
-      largeur: dimensions.largeur,
-      hauteur: dimensions.hauteur,
+      largeur: image.largeur,
+      hauteur: image.hauteur,
     });
   } catch (error) {
     console.error(`[bibliotheque] échec sur ${theme.slug}/${sujet.slug}`, error);

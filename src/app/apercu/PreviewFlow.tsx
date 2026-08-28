@@ -44,6 +44,9 @@ import { getArtworkHd, getDraftPhoto } from "@/lib/storage";
  */
 const WATERMARK_PREVIEW = true;
 
+/** Grand côté de l'image d'aperçu. Le fichier livrable, lui, reste intact. */
+const AFFICHAGE_MAX = 1400;
+
 const soloPrice = formatPrice(PACKS[0].amount);
 
 export function PreviewFlow() {
@@ -119,8 +122,23 @@ export function PreviewFlow() {
         setDisplayUrl(track(URL.createObjectURL(blob)));
       } else {
         const bitmap = await loadBitmap(blob);
-        const canvas = createCanvas(bitmap.width, bitmap.height);
-        canvas.getContext("2d")!.drawImage(bitmap, 0, 0);
+        // Le fichier livrable fait maintenant 300 ppp, soit près de neuf
+        // mégapixels. L'aperçu s'affiche sur moins de 800 px de large : le
+        // filigraner à pleine définition coûterait plusieurs secondes et une
+        // trentaine de mégaoctets sur un téléphone, pour rien de visible.
+        const facteur = Math.min(
+          1,
+          AFFICHAGE_MAX / Math.max(bitmap.width, bitmap.height),
+        );
+        const canvas = createCanvas(
+          Math.round(bitmap.width * facteur),
+          Math.round(bitmap.height * facteur),
+        );
+        const ctx = canvas.getContext("2d")!;
+        ctx.imageSmoothingQuality = "high";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
         bitmap.close?.();
         applyWatermark(canvas);
         const watermarked = await canvasToBlob(canvas, "image/webp", 0.9);

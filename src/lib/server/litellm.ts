@@ -12,12 +12,17 @@
  * L'image générée revient dans `message.images[]`, sous forme d'URL `data:`.
  */
 
+import { lireDimensions } from "./imageInfo";
+import { preparerPourImpression } from "./impression";
+
 /** Au-delà, on considère que le moteur ne répondra pas. */
 const TIMEOUT_MS = 120_000;
 
 export interface GeneratedImage {
   data: ArrayBuffer;
   mimeType: string;
+  largeur: number;
+  hauteur: number;
 }
 
 export function engineConfigured(): boolean {
@@ -103,23 +108,51 @@ export async function generateImage(request: ImageRequest): Promise<GeneratedIma
       : null);
 
   if (!candidate) throw new Error("LiteLLM n'a pas renvoyé d'image");
-  const image = fromDataUri(candidate);
-  if (!image) throw new Error("Image LiteLLM illisible");
-  return image;
+  const brute = fromDataUri(candidate);
+  if (!brute) throw new Error("Image LiteLLM illisible");
+
+  /**
+   * La finition passe ici, et non chez les appelants : aucune image du modèle
+   * ne doit pouvoir sortir de ce fichier sans être prête à imprimer. Deux
+   * appelants, c'est déjà une occasion de divergence.
+   *
+   * Si elle échoue, on livre l'image brute : la finition améliore un rendu,
+   * elle ne conditionne pas la génération. Personne ne doit perdre un dessin
+   * — ni un crédit — parce qu'un redimensionnement s'est mal passé.
+   */
+  try {
+    const finie = await preparerPourImpression(brute.bytes);
+    return {
+      data: versArrayBuffer(finie.data),
+      mimeType: finie.mimeType,
+      largeur: finie.largeur,
+      hauteur: finie.hauteur,
+    };
+  } catch (error) {
+    console.error("[impression] finition impossible, image brute livrée", error);
+    const dimensions = lireDimensions(brute.bytes);
+    if (!dimensions) throw new Error("Image LiteLLM illisible");
+    return {
+      data: versArrayBuffer(brute.bytes),
+      mimeType: brute.mimeType,
+      largeur: dimensions.largeur,
+      hauteur: dimensions.hauteur,
+    };
+  }
 }
 
-/** Décode une image renvoyée sous forme d'URL `data:` en un buffer. */
-function fromDataUri(uri: string): GeneratedImage | null {
+function versArrayBuffer(buffer: Buffer): ArrayBuffer {
+  return buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength,
+  ) as ArrayBuffer;
+}
+
+/** Décode une image renvoyée sous forme d'URL `data:`. */
+function fromDataUri(uri: string): { bytes: Buffer; mimeType: string } | null {
   const match = /^data:([^;,]+);base64,(.+)$/s.exec(uri);
   if (!match) return null;
-  const buffer = Buffer.from(match[2], "base64");
-  return {
-    data: buffer.buffer.slice(
-      buffer.byteOffset,
-      buffer.byteOffset + buffer.byteLength,
-    ) as ArrayBuffer,
-    mimeType: match[1],
-  };
+  return { bytes: Buffer.from(match[2], "base64"), mimeType: match[1] };
 }
 
 /** Vrai si l'échec vient du réseau, et non d'une réponse du proxy. */

@@ -301,6 +301,53 @@ n'apparaîtrait qu'au prochain déploiement.
   Si beaucoup de visites ne donnent rien, le problème est l'accroche, pas le
   nombre de pages.
 
+## Prêt à imprimer
+
+Le produit fini n'est pas un fichier, c'est une feuille A4 sortie d'une
+imprimante familiale. Le modèle, lui, renvoie du JPEG d'environ 864×1248 :
+deux défauts s'y cumulent, et aucun ne se voit à l'écran.
+
+- **La définition.** Posée dans la zone imprimable de l'A4, cette image tombe
+  à **118 ppp** là où il en faudrait 300. Les bords sortent en escalier.
+- **Le JPEG.** C'est le pire format pour du trait noir sur blanc : la
+  compression entoure chaque ligne d'un halo gris, cuit dans les octets dès la
+  réponse du modèle. D'où le traitement **au plus près de la source**, dans
+  `src/lib/server/impression.ts`, et jamais côté navigateur où il serait déjà
+  trop tard.
+
+La chaîne a été retenue en comparant cinq variantes sur de vrais dessins :
+agrandissement lanczos vers 3508 px de grand côté, passage en niveaux de gris,
+étirement du contraste `v' = 2,2 v − 140`, sortie PNG en palette de 16 sans
+tramage.
+
+Trois arbitrages méritent d'être connus :
+
+- **agrandir d'abord, nettoyer ensuite.** L'inverse crénelle les courbes ;
+  lanczos travaille mieux sur les dégradés du JPEG que sur un trait déjà
+  binarisé ;
+- **étirer le contraste plutôt que seuiller.** Le seuillage franc donne un
+  fichier quatre fois plus léger, mais il ronge le trait — exactement ce qu'on
+  ne veut pas là où le prompt réclame un trait épais pour des mains de trois
+  ans ;
+- **palette sans tramage.** Seize niveaux suffisent pour de l'anticrénelage de
+  bord et le fichier pèse trois fois moins qu'un PNG pleine profondeur. Le
+  tramage est coupé : il réintroduirait la trame que le prompt interdit.
+
+Résultat mesuré sur deux dessins publiés : le gris parasite passe de 2,3 % à
+1,3 % des pixels, le fichier de 225 Ko en 864×1248 à 158 Ko en 2429×3508, et le
+PDF livré de **118 à 331 ppp**.
+
+La finition est posée dans `generateImage`, pas chez les appelants : aucune
+image du modèle ne peut sortir sans être prête à imprimer, et deux appelants
+seraient déjà une occasion de divergence. Si elle échoue, l'image brute est
+livrée — elle améliore un rendu, elle ne conditionne pas la génération, et
+personne ne doit perdre un dessin ni un crédit pour un redimensionnement raté.
+
+Côté navigateur, l'aperçu est filigrané sur une copie réduite à 1400 px :
+filigraner neuf mégapixels coûterait plusieurs secondes et une trentaine de
+mégaoctets sur un téléphone, pour une image affichée sur moins de 800 px. Le
+fichier livrable, lui, n'est jamais altéré.
+
 ## Mesure d'audience
 
 Umami auto-hébergé, sans cookie ni donnée personnelle : pas de bandeau de
@@ -341,6 +388,7 @@ src/app/coloriages/      bibliothèque gratuite (hub, thèmes, dessins, images)
 src/app/admin/           génération et relecture de la bibliothèque
 src/lib/coloriages/      sujets et prompts de la bibliothèque
 src/lib/server/litellm.ts  le seul dialogue avec le moteur d'images
+src/lib/server/impression.ts  finition A4 300 ppp, appliquée à la source
 src/lib/lineart/         appel du moteur côté client + types de réglages
 src/lib/server/          comptes et crédits dans Postgres
 src/lib/server/quotas.ts   quota d'aperçus gratuits
@@ -355,9 +403,6 @@ scripts/migrate.mjs      exécuteur de migrations
 
 ## À compléter avant mise en production
 
-- **Résolution d'impression.** Le fichier livré fait la taille que renvoie le
-  modèle. Vérifier ce que ça donne en A4 et, si besoin, ajouter un
-  agrandissement ou une vectorisation avant le PDF.
 - **RGPD.** La photo part chez un tiers : compléter la politique de
   confidentialité (prestataire, localisation, conservation, non-réutilisation
   pour l'entraînement) et utiliser une offre payante du fournisseur, pas une
@@ -390,12 +435,12 @@ scripts/migrate.mjs      exécuteur de migrations
   champs `[à compléter]` attendent les infos de la société.
 - Illustrations de la landing : ce sont des SVG de démonstration, pas de vraies
   photos clients.
-- **Résolution des coloriages gratuits.** Le modèle renvoie environ 864×1248,
-  soit près de trois fois moins qu'un A4 à 300 ppp. C'est acceptable pour du
-  gratuit, mais l'agrandissement se voit à l'impression. Il renvoie aussi du
-  JPEG, mal adapté à un trait noir sur blanc : convertir en PNG n'y changerait
-  rien, la perte est déjà faite. À traiter avec le point « résolution
-  d'impression » ci-dessus si ça gêne.
+- **Les dessins déjà publiés restent en basse définition.** La finition
+  d'impression ne s'applique qu'à la génération : les 34 coloriages publiés
+  avant elle gardent leur JPEG d'origine. Ils sont corrects à l'écran et
+  passables à l'impression. À régénérer depuis l'administration quand
+  l'occasion se présente — leurs URL en `.jpg` restent valides entre-temps,
+  et les nouvelles sortent en `.png`.
 - **Photos de démonstration.** L'avant/après de `EtSiCetaitToi` montre des
   personnes identifiables, dont un enfant, et il apparaît désormais sur chaque
   page de la bibliothèque : la question des droits de publication devient plus
