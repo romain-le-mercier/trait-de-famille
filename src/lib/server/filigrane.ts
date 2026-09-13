@@ -19,9 +19,18 @@ const APERCU_MAX = 1400;
 const MOT = "APERÇU · TRAIT DE FAMILLE";
 
 /**
- * Le filigrane est un SVG composité par sharp plutôt qu'un dessin pixel par
- * pixel : il reste net quelle que soit la taille, et le motif se décrit en
- * quelques lignes.
+ * Le filigrane : des bandes diagonales, et le mot par-dessus.
+ *
+ * Les bandes ne sont pas décoratives. Le motif n'était d'abord que du texte, et
+ * en production il ne s'est pas dessiné du tout : sharp composite alors un
+ * calque vide, sans erreur et sans trace, et l'aperçu partait propre. Mesuré le
+ * 2026-09-13 sur la même photo et le même code : 10,68 % de pixels filigranés
+ * ici, 0,00 % en ligne.
+ *
+ * Un `<rect>` ne dépend d'aucune police, d'aucun moteur de texte, d'aucune
+ * `fontconfig` : il se dessine partout où le SVG se dessine. Le mot reste, mais
+ * il n'est plus ce qui protège — il est ce qui s'ajoute là où il peut. **Ne pas
+ * refaire un filigrane qui repose sur le seul rendu de texte.**
  */
 function motif(largeur: number, hauteur: number): Buffer {
   const diagonale = Math.hypot(largeur, hauteur);
@@ -29,8 +38,19 @@ function motif(largeur: number, hauteur: number): Buffer {
   const pas = taille * 3;
   const lignes = Math.ceil(diagonale / pas);
 
+  // Assez large pour se voir, assez pâle pour qu'on juge le dessin dessous :
+  // c'est un aperçu qu'on veut donner envie d'acheter, pas une image ruinée.
+  const epaisseur = taille * 0.9;
+
+  const bandes: string[] = [];
   const textes: string[] = [];
   for (let i = -lignes; i <= lignes; i += 1) {
+    // La bande se glisse entre deux lignes de texte plutôt que dessous.
+    bandes.push(
+      `<rect x="${-diagonale}" y="${i * pas + pas / 2 - epaisseur / 2}" ` +
+        `width="${diagonale * 2}" height="${epaisseur}" ` +
+        `fill="#7b61ff" fill-opacity="0.10"/>`,
+    );
     textes.push(
       `<text x="0" y="${i * pas}" text-anchor="middle" ` +
         `font-family="system-ui, sans-serif" font-weight="700" ` +
@@ -42,6 +62,7 @@ function motif(largeur: number, hauteur: number): Buffer {
   return Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${largeur}" height="${hauteur}">` +
       `<g transform="translate(${largeur / 2} ${hauteur / 2}) rotate(-30)">` +
+      bandes.join("") +
       textes.join("") +
       `</g></svg>`,
   );
