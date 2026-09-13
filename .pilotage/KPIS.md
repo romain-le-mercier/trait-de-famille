@@ -5,17 +5,17 @@ Sans cible retenue, aucun statut de trajectoire n'est posé.
 
 | KPI | Source | Baseline | Période baseline | Cible proposée | Cible retenue | Échéance | Fréquence |
 |---|---|---|---|---|---|---|---|
-| Ventes Stripe 28 j (nb achats, € encaissés) — **KPI nord** | à créer : page `/admin/ventes` (agrégats Postgres `purchases`), relevée par Romain dans `retours-romain.md` | 0 / 0 € (aucune vente connue, aucune source) | au 2026-09-12 | 10 achats entre le 01/11 et le 15/12 | | 2026-12-15 | Hebdo à partir du 01/11 |
-| Pages indexées | GSC Indexation > Pages | 24 / 76 connues (sitemap : 73 URL vérifiées en ligne le 2026-09-12) | relevé du 2026-09-04 | 60 / 90 (dont thème Noël) | | 2026-11-15 | Hebdo |
+| Ventes Stripe 28 j (nb achats, € encaissés) — **KPI nord** | à créer : page `/admin/ventes` (agrégats Postgres `purchases`), relevée par Romain dans `retours-romain.md` | 0 / 0 € (aucune vente connue, aucune source) | au 2026-09-12 | 10 achats entre le 01/11 et le 15/12 | **10 achats — retenue par Romain le 2026-09-12** | 2026-11-01 → 2026-12-15 | Hebdo à partir du 01/11 |
+| Pages indexées | GSC Indexation > Pages | 24 / 76 connues (sitemap : 73 URL vérifiées en ligne le 2026-09-12) | relevé du 2026-09-04 | 60 / 90 (dont thème Noël) | **60 / 90 — retenue par Romain le 2026-09-12** | 2026-11-15 | Hebdo |
 | Clics organiques 28 j | GSC Performance | 0 | 28 j au 2026-09-06 | | | | Hebdo |
 | Position moyenne 28 j | GSC Performance | 18.9 | idem | | | | Hebdo |
 | Coût modèle 28 j (LiteLLM `spend`) | LiteLLM Usage, relevé par Romain → `_pilotage/finance/couts.csv` | **0 €** (aucun appel) | au 2026-09-12, Romain | | | | Mensuel |
 
-**Arbitrage du 2026-09-12 : aucun chiffre n'a été donné pour les deux cibles proposées** (10 achats
-entre le 01/11 et le 15/12, 60 / 90 pages indexées au 15/11). Elles **restent des propositions**, la
-colonne « Cible retenue » reste vide, et **aucun statut de trajectoire n'est posé** dans ce fichier —
-ni aujourd'hui, ni à la revue du 19/09 si elle reste vide. Ce site est à 0 clic, 0 vente et moins de
-30 jours de série : même avec une cible, aucune tendance ne se jugerait encore.
+**2026-09-12 — mise à jour : Romain a validé en bloc (« 15 cibles : je valide tout »).** Les deux cibles sont
+désormais **retenues** : **10 achats entre le 01/11 et le 15/12** (baseline 0), et **60 / 90 pages indexées
+au 2026-11-15** (baseline 24 / 76). Un statut de trajectoire pourra donc se poser sur ces deux KPI — étant
+rappelé que ce site est à 0 clic, 0 vente et moins de 30 jours de série : même avec une cible, aucune tendance
+ne se juge encore aujourd'hui, ni à la revue du 19/09 si le volume reste nul.
 
 Note : Umami est en profil robot (pages/visite 1,2 ; 100 % sans référent ; 49 visites US sur 64) : il ne mesure pas l'audience de ce site. Ses événements de tunnel (`generation-reussie`, `paiement-reussi`) ne sont pas exposés par `umami-digest.js` ; ils ne servent pas de source KPI.
 

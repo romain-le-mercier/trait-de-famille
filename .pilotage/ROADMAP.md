@@ -92,8 +92,7 @@ Réponses reportées depuis `_pilotage/arbitrages.md`. Elles sortent des « Arbi
 
 ## Arbitrages attendus de Romain
 
-- 2026-09-12 — Cible retenue pour le KPI nord : 10 achats entre le 01/11 et le 15/12 (proposée), ou quel chiffre ? **Sans réponse au 2026-09-12 : la trajectoire de ce site ne se juge pas.**
-- 2026-09-12 — Cible retenue pour « Pages indexées » au 15/11 : 60 / 90 (proposée), ou quel chiffre ? **Sans réponse au 2026-09-12.**
+- 2026-09-12 (Romain) — Cibles retenues en bloc (« 15 cibles : je valide tout ») : KPI nord 10 achats entre le 01/11 et le 15/12 ; pages indexées 60/90 au 15/11. Voir `KPIS.md`.
 - 2026-09-12 — **Quand poses-tu les clés Stripe live et le webhook en production ?** Tu dis attendre « un peu de traction » : aucune traction n'est mesurable sans vente, et aucune vente n'est possible sans cette configuration. Confirmes-tu la date butoir du **2026-10-25**, ou acte-t-on dès maintenant que la saison de Noël se fera **sans offre payante** — 25/10 / sans offre ?
 
 ## Journal des revues

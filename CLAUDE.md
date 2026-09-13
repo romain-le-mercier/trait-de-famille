@@ -11,13 +11,15 @@ est `.pilotage/`, versionné dans ce dépôt. **Aucun artefact, aucun dossier ex
 .pilotage/tickets/todo/   PM écrit. Je prends le premier (ordre alphabétique) sauf consigne de Romain.
 .pilotage/tickets/doing/  Moi. Un seul ticket à la fois.
 .pilotage/tickets/review/ Moi, à la livraison, section « Retour dev » remplie.
-.pilotage/tickets/done/   PM.
+.pilotage/tickets/done/   Moi, via /valider (verdict du valideur). Le PM relit après coup.
 .pilotage/journal.md      Moi, append-only. Date de MEP, commit, chiffre, valeur remplacée.
 ```
 
-Trois commandes : `/ticket [T-xxx]` pour prendre, `/review` avant de rendre (cinq reviewers adversariaux + un contre-expert), `/livrer` pour rendre. Elles font les déplacements et le journal.
+Quatre commandes : `/ticket [T-xxx]` pour prendre, `/review` avant de rendre (cinq reviewers adversariaux + un contre-expert), `/livrer` pour rendre, `/valider` pour clore (le valideur rejoue les critères de fin ; si c'est bon le ticket part en `done/` et devient déployable). Elles font les déplacements et le journal.
 
 
+
+## Pas de ticket, pas de code
 
 - Je lis `ROADMAP.md` (au moins « Ne pas faire » et « Arbitrages ») puis le ticket, en entier.
 - Je déplace le ticket : `git mv .pilotage/tickets/todo/T-xxx… .pilotage/tickets/doing/`.
