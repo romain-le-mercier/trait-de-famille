@@ -38,7 +38,7 @@ indispensable**, le reste dépend de ce que tu veux tester.
 | `LITELLM_BASE_URL` + `LITELLM_API_KEY` + `LITELLM_MODEL` | Moteur de génération, via le proxy LiteLLM | Aucun dessin n'est produit |
 | `NEXT_PUBLIC_SITE_URL` | Base des canoniques, du sitemap et de l'image de partage | Retombe sur `localhost` — à renseigner en production |
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Connexion Google | Personne ne peut acheter |
-| `AUTH_SECRET` | Signature des sessions (`openssl rand -base64 32`) | Le SSO est désactivé |
+| `AUTH_SECRET` | Signature des sessions **et du jeton de visiteur anonyme** (`openssl rand -base64 32`) | Plus aucun aperçu : la génération refuse en 501, faute de pouvoir dire à qui appartient le fichier |
 | `AUTH_URL` | Force l'origine OAuth ; sinon dérivée de `NEXT_PUBLIC_SITE_URL` | Rien — c'est le cas normal |
 | `ADMIN_EMAILS` | Adresses autorisées sur `/admin` | L'administration répond 404 pour tout le monde |
 | `STRIPE_SECRET_KEY` | Active le Checkout Stripe | L'écran de déblocage annonce « Paiement indisponible » |
@@ -301,6 +301,48 @@ n'apparaîtrait qu'au prochain déploiement.
   Si beaucoup de visites ne donnent rien, le problème est l'accroche, pas le
   nombre de pages.
 
+## Le paywall, et où vivent les fichiers
+
+Pendant longtemps le filigrane n'a protégé que la vignette : le fichier propre
+partait dans l'IndexedDB du visiteur **dès la génération**. Ce qu'on vendait
+était déjà livré avant d'être payé, et une console de développeur suffisait à
+le récupérer.
+
+Aujourd'hui l'original ne quitte pas le serveur :
+
+1. `POST /api/generate` appelle le modèle, écrit l'original sur le volume,
+   enregistre une ligne dans `oeuvres`, et **ne renvoie que l'aperçu
+   filigrané** — plus l'identifiant de l'œuvre, dans l'en-tête `X-Oeuvre` ;
+2. `POST /api/oeuvres/<id>/debloquer` est le **seul** chemin par lequel un
+   original sort.
+
+L'ordre des opérations du déblocage est ce qui garantit qu'on ne paie jamais
+sans recevoir : le fichier est lu **avant** le débit — s'il manque, personne
+n'est débité —, puis le crédit est dépensé, puis l'œuvre marquée payée ; si ce
+dernier enregistrement échoue, le crédit est rendu. Une œuvre déjà débloquée
+est reservie sans second débit, parce que la route doit supporter un
+rechargement ou un second téléchargement.
+
+**Un aperçu se fait sans compte** — c'est tout l'entonnoir. L'œuvre appartient
+alors à un jeton anonyme signé (`src/lib/server/visiteur.ts`), posé en cookie,
+qui ne dit rien de la personne. À la connexion, le déblocage la rattache au
+compte, à la condition stricte qu'elle ait appartenu au jeton du navigateur
+courant : sans quoi n'importe qui réclamerait le dessin d'un autre.
+
+Les fichiers vivent sur un **volume monté**, pas dans le conteneur — voir
+`STOCKAGE_DIR`. Tout passe par `src/lib/server/stockage.ts` et rien d'autre ne
+connaît de chemin : basculer vers un stockage objet ne touchera que ce
+fichier. Les identifiants venant d'une URL y sont validés, sans quoi
+`../../.env` serait un identifiant recevable.
+
+**Un essai jamais payé est effacé au bout de 30 jours** ; un coloriage acheté
+est gardé sans limite. La purge est opportuniste, une génération sur cinquante,
+et s'appuie sur un index partiel qui ne porte que sur les essais.
+
+Les dessins produits avant tout ceci gardent leur fichier en local et se
+débloquent par l'ancien chemin : on avait promis de pouvoir payer plus tard
+sans redessiner, ce n'est pas un déploiement qui reprend la promesse.
+
 ## Prêt à imprimer
 
 Le produit fini n'est pas un fichier, c'est une feuille A4 sortie d'une
@@ -389,6 +431,10 @@ src/app/admin/           génération et relecture de la bibliothèque
 src/lib/coloriages/      sujets et prompts de la bibliothèque
 src/lib/server/litellm.ts  le seul dialogue avec le moteur d'images
 src/lib/server/impression.ts  finition A4 300 ppp, appliquée à la source
+src/lib/server/filigrane.ts   l'aperçu filigrané, produit côté serveur
+src/lib/server/stockage.ts    où vivent les fichiers (volume monté)
+src/lib/server/oeuvres.ts     à qui ils appartiennent, lesquels sont payés
+src/lib/server/visiteur.ts    jeton anonyme signé, pour les essais sans compte
 src/lib/lineart/         appel du moteur côté client + types de réglages
 src/lib/server/          comptes et crédits dans Postgres
 src/lib/server/quotas.ts   quota d'aperçus gratuits
@@ -407,11 +453,11 @@ scripts/migrate.mjs      exécuteur de migrations
   confidentialité (prestataire, localisation, conservation, non-réutilisation
   pour l'entraînement) et utiliser une offre payante du fournisseur, pas une
   offre gratuite qui réutilise les données.
-- **Le filigrane est une barrière d'usage, pas de sécurité.** L'image sans
-  filigrane est écrite dans l'IndexedDB du visiteur dès la génération — c'est
-  ce qui permet de payer après coup sans redessiner. Quelqu'un d'outillé peut
-  l'en extraire. Si ça devient un problème, il faut garder le fichier côté
-  serveur et ne servir que le filigrané avant paiement.
+- **La galerie reste locale à l'appareil.** Les fichiers sont désormais côté
+  serveur et rattachés au compte, mais l'affichage de `/mes-coloriages` lit
+  toujours l'état persisté du navigateur. Un client qui change d'appareil ne
+  voit donc pas ses achats, alors que le serveur, lui, les connaît : c'est
+  maintenant un écran à écrire, plus une donnée à déplacer.
 - **Éprouver une restauration.** Les sauvegardes planifiées vers S3 sont en
   place, mais aucune n'a jamais été restaurée : c'est donc une intention, pas
   une sauvegarde. La rehearsal tient en quelques minutes — récupérer le dernier

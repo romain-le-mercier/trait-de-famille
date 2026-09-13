@@ -114,11 +114,23 @@ export function PreviewFlow() {
    * s'affiche quand même, mais il n'y a rien à débloquer.
    */
   const show = useCallback(
-    async (blob: Blob, key: string, id: string | null, reprise: boolean) => {
+    async (
+      blob: Blob,
+      key: string,
+      id: string | null,
+      reprise: boolean,
+      /**
+       * Vrai quand le filigrane reste à poser ici : c'est le cas des dessins
+       * produits avant que les originaux ne quittent le navigateur, dont la
+       * copie locale est encore le fichier propre. Les nouveaux arrivent déjà
+       * filigranés du serveur.
+       */
+      aFiligraner: boolean,
+    ) => {
       setActiveId(id);
       setActiveKey(key);
 
-      if (!WATERMARK_PREVIEW) {
+      if (!WATERMARK_PREVIEW || !aFiligraner) {
         setDisplayUrl(track(URL.createObjectURL(blob)));
       } else {
         const bitmap = await loadBitmap(blob);
@@ -164,6 +176,8 @@ export function PreviewFlow() {
         const result = await renderLineArt({
           photo,
           settings: target,
+          fileName: draft.fileName,
+          photoKey: draft.photoKey,
           onProgress: (value) => {
             if (run === runRef.current) setProgress(value);
           },
@@ -182,8 +196,9 @@ export function PreviewFlow() {
           fileName: draft.fileName,
           settings: target,
           master: result.blob,
+          oeuvreId: result.oeuvreId,
         });
-        await show(result.blob, key, id, false);
+        await show(result.blob, key, id, false, false);
       } catch (caught) {
         if (run === runRef.current) {
           suivre("generation-echouee");
@@ -243,7 +258,9 @@ export function PreviewFlow() {
       const stored = await getArtworkHd(known.id);
       if (cancelled || !stored) return;
       setReused(true);
-      await show(stored, wanted, known.id, true);
+      // Un ancien essai garde son fichier propre en local : c'est le seul cas
+      // où le filigrane reste à poser ici.
+      await show(stored, wanted, known.id, true, !known.unlocked && !known.oeuvreId);
     })();
     return () => {
       cancelled = true;
