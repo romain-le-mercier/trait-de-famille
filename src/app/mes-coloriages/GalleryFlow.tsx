@@ -14,7 +14,7 @@ import {
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { Scene } from "@/components/illustrations/Scene";
-import { forget, unlockArtwork } from "@/lib/artworks";
+import { forget, reprendreOriginal, unlockArtwork } from "@/lib/artworks";
 import { downloadBlob, loadBitmap, slugDate } from "@/lib/image";
 import { DETAIL_LABELS, STROKE_LABELS } from "@/lib/lineart/types";
 import { buildColoringPdf } from "@/lib/pdf";
@@ -99,9 +99,22 @@ export function GalleryFlow() {
 
   const redownload = async (id: string) => {
     setBusyId(id);
+    setError(null);
     try {
-      const hd = await getArtworkHd(id);
-      if (!hd) return;
+      /**
+       * La copie locale peut manquer : navigateur nettoyé, quota d'IndexedDB
+       * dépassé, appareil différent. Le fichier payé, lui, est sur le serveur
+       * et la route de déblocage est idempotente — on le reprend plutôt que
+       * de laisser un client payé devant un bouton qui ne fait rien.
+       */
+      const hd = (await getArtworkHd(id)) ?? (await reprendreOriginal(id));
+      if (!hd) {
+        setError(
+          "Ce coloriage n'a pas pu être retrouvé sur cet appareil. " +
+            "Reconnecte-toi et réessaie : il est payé, il ne se perd pas.",
+        );
+        return;
+      }
       const bitmap = await loadBitmap(hd);
       const pdf = await buildColoringPdf(hd, {
         width: bitmap.width,

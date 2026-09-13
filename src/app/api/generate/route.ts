@@ -1,10 +1,13 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { construireApercu } from "@/lib/server/filigrane";
 import {
   engineConfigured,
   generateImage,
   isNetworkError,
 } from "@/lib/server/litellm";
+import { creer, purgerParfois as purgerOeuvresParfois } from "@/lib/server/oeuvres";
 import {
   cleVisiteur,
   consommer,
@@ -13,6 +16,8 @@ import {
   rendre,
   restant,
 } from "@/lib/server/quotas";
+import { ecrire, supprimer as supprimerFichier } from "@/lib/server/stockage";
+import { identifier } from "@/lib/server/visiteur";
 
 /**
  * Moteur de rendu — c'est ici que le coloriage personnalisé est produit.
@@ -87,12 +92,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Photo manquante." }, { status: 400 });
   }
 
+  /**
+   * `identifier` pose au besoin le cookie de visiteur : sans propriétaire,
+   * l'œuvre rangée sur le volume ne pourrait être réclamée par personne.
+   *
+   * Il signe ce jeton avec `AUTH_SECRET` et lève si elle manque. Le try est là
+   * pour que ce soit dit : depuis que l'aperçu range un fichier, `AUTH_SECRET`
+   * ne conditionne plus seulement la connexion Google, elle conditionne
+   * l'entonnoir gratuit entier. Sans ce garde, un serveur mal configuré
+   * renverrait un 500 nu à chaque visiteur qui n'a pas encore de cookie.
+   */
+  let visiteur;
+  try {
+    visiteur = await identifier();
+  } catch (error) {
+    console.error("[generate] identité visiteur impossible", error);
+    return NextResponse.json(
+      { message: "Le serveur n'est pas configuré pour produire des coloriages." },
+      { status: 501 },
+    );
+  }
+  const connecte = Boolean(visiteur.compteId);
+
   // Le décompte passe avant l'appel au modèle — c'est tout l'intérêt — mais
   // après la validation de la photo : une requête malformée ne coûte rien et
   // ne doit donc rien consommer.
-  const session = await auth();
-  const connecte = Boolean(session?.user?.id);
-  const cle = cleVisiteur(request, session?.user?.id);
+  const cle = cleVisiteur(request, visiteur.compteId);
   const plafond = plafondPour(connecte);
 
   if (cle) {
@@ -139,19 +164,55 @@ export async function POST(request: Request) {
       source: { bytes, mimeType },
     });
 
+    /**
+     * L'original ne quitte pas le serveur.
+     *
+     * Le fichier d'abord, l'enregistrement ensuite : si la base bronche, on
+     * efface le fichier plutôt que de laisser un orphelin que rien ne
+     * purgera. L'inverse — une ligne sans fichier — promettrait un coloriage
+     * qu'on ne peut plus livrer.
+     */
+    const original = Buffer.from(result.data);
+    const oeuvreId = randomUUID().replace(/-/g, "");
+    await ecrire(oeuvreId, original);
+    try {
+      await creer({
+        id: oeuvreId,
+        proprietaire: visiteur.proprietaire,
+        mime: result.mimeType,
+        largeur: result.largeur,
+        hauteur: result.hauteur,
+        octets: original.byteLength,
+        nomFichier: String(form?.get("fileName") ?? "") || null,
+        empreintePhoto: String(form?.get("photoKey") ?? "") || null,
+        reglages: { detail, stroke, removeBackground },
+      });
+    } catch (error) {
+      await supprimerFichier(oeuvreId).catch(() => {});
+      throw error;
+    }
+
+    const apercu = await construireApercu(original);
+
     // Cette ligne est la seule preuve, côté serveur, qu'une génération est
     // allée au bout. Si elle manque alors que le proxy a facturé l'appel,
     // c'est que la réponse n'a jamais quitté le conteneur.
     console.log(
       `[generate] ok en ${((Date.now() - startedAt) / 1000).toFixed(1)}s ` +
         `· envoi ${Math.round(bytes.length / 1024)} Ko ` +
-        `· retour ${Math.round(result.data.byteLength / 1024)} Ko`,
+        `· original ${Math.round(original.byteLength / 1024)} Ko ` +
+        `${result.largeur}×${result.hauteur} ` +
+        `· aperçu ${Math.round(apercu.data.byteLength / 1024)} Ko ` +
+        `· œuvre ${oeuvreId}`,
     );
 
-    return new NextResponse(new Uint8Array(result.data), {
+    void purgerOeuvresParfois();
+
+    return new NextResponse(new Uint8Array(apercu.data), {
       headers: {
-        "Content-Type": result.mimeType,
+        "Content-Type": apercu.mimeType,
         "Cache-Control": "no-store",
+        "X-Oeuvre": oeuvreId,
       },
     });
   } catch (error) {

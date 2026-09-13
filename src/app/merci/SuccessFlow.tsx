@@ -17,7 +17,7 @@ import { GeneratingOverlay } from "@/components/flow/GeneratingOverlay";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card, Scribble } from "@/components/ui/Card";
 import { premiereFois, suivre } from "@/lib/analytics";
-import { unlockArtwork } from "@/lib/artworks";
+import { reprendreOriginal, unlockArtwork } from "@/lib/artworks";
 import { downloadBlob, loadBitmap, slugDate } from "@/lib/image";
 import { buildColoringPdf } from "@/lib/pdf";
 import { useAccount, useAppStore, useHydrated } from "@/lib/store";
@@ -103,7 +103,12 @@ export function SuccessFlow() {
           const outcome = await unlockArtwork(pending);
           if (outcome.ok && (await showArtwork(pending))) return;
           if (!outcome.ok && outcome.reason === "error") {
-            setMessage("L'enregistrement a échoué. Ton crédit n'a pas été utilisé.");
+            // Le message de la route est plus juste que le nôtre : elle seule
+            // sait si le crédit est parti. Ne rien affirmer à sa place.
+            setMessage(
+              outcome.message ??
+                "L'enregistrement a échoué. Ton crédit n'a pas été utilisé.",
+            );
           }
         }
       }
@@ -130,7 +135,9 @@ export function SuccessFlow() {
     if (!artId) return;
     setDownloading(kind);
     try {
-      const hd = await getArtworkHd(artId);
+      // Même filet qu'en galerie : un coloriage payé se reprend sur le
+      // serveur si la copie locale a disparu.
+      const hd = (await getArtworkHd(artId)) ?? (await reprendreOriginal(artId));
       if (!hd) throw new Error("introuvable");
       const name = `trait-de-famille-${slugDate()}`;
       if (kind === "png") {

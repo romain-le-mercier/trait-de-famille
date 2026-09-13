@@ -165,6 +165,92 @@ export async function grantCredits(input: GrantInput): Promise<GrantResult> {
   }
 }
 
+export type Deblocage =
+  | { etat: "paye"; credits: number }
+  | { etat: "deja-payee" }
+  | { etat: "disparue" }
+  | { etat: "sans-credit"; credits: number };
+
+/**
+ * Marque un coloriage payé **et** débite le crédit, dans la même transaction.
+ *
+ * Les deux écritures touchent deux tables, et ce module est le seul endroit où
+ * vit de l'argent : c'est donc ici que la transaction doit se tenir, même si la
+ * première ligne parle d'œuvres.
+ *
+ * Pourquoi une transaction, et pas deux requêtes à la suite : le marquage seul
+ * était visible des autres requêtes dès son COMMIT, avant que le crédit ne soit
+ * acquis. Une seconde requête arrivant dans cette fenêtre voyait « déjà payée »
+ * et livrait l'original sans rien débiter — il suffisait d'un compte à zéro
+ * crédit et de deux appels simultanés pour se servir. Ici, le verrou posé sur la
+ * ligne de `oeuvres` tient jusqu'au COMMIT : la requête jumelle attend, puis lit
+ * un état définitif, payé ou pas du tout.
+ *
+ * Trois issues, et trois seulement : payé (crédit débité), déjà payée (on
+ * resservira sans débiter — rechargement, second téléchargement), ou pas de
+ * crédit (rien n'a bougé, le ROLLBACK a défait le marquage).
+ */
+export async function debiterPourDeblocage(
+  identity: Identity,
+  oeuvreId: string,
+): Promise<Deblocage> {
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const reclamee = await client.query(
+      `UPDATE oeuvres SET debloquee_le = now()
+        WHERE id = $1 AND debloquee_le IS NULL
+        RETURNING id`,
+      [oeuvreId],
+    );
+    if (reclamee.rowCount === 0) {
+      /**
+       * Zéro ligne veut dire deux choses très différentes : l'œuvre était déjà
+       * payée, ou elle n'existe plus. La purge des essais expirés peut passer
+       * entre la lecture du fichier par la route et cette transaction —
+       * confondre les deux livrerait gratuitement un original qu'on vient
+       * d'effacer.
+       */
+      const existe = await client.query(
+        "SELECT 1 FROM oeuvres WHERE id = $1",
+        [oeuvreId],
+      );
+      await client.query("COMMIT");
+      return existe.rowCount === 0 ? { etat: "disparue" } : { etat: "deja-payee" };
+    }
+
+    const debit = await client.query<{ credits: number }>(
+      `UPDATE accounts SET credits = credits - 1
+        WHERE id = $1 AND credits >= 1
+        RETURNING credits`,
+      [identity.id],
+    );
+    if (debit.rowCount === 0) {
+      // Le marquage part avec le ROLLBACK : personne ne l'aura jamais vu.
+      await client.query("ROLLBACK");
+      // Sur `client`, pas sur `pool` : la connexion est redevenue utilisable
+      // après le ROLLBACK, et en demander une seconde sans avoir rendu la
+      // première épuiserait le pool — dix comptes sans crédit suffiraient à
+      // figer toutes les requêtes du serveur, définitivement.
+      const current = await client.query<{ credits: number }>(
+        "SELECT credits FROM accounts WHERE id = $1",
+        [identity.id],
+      );
+      return { etat: "sans-credit", credits: current.rows[0]?.credits ?? 0 };
+    }
+
+    await client.query("COMMIT");
+    return { etat: "paye", credits: debit.rows[0].credits };
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export interface ConsumeResult {
   ok: boolean;
   credits: number;

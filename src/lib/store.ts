@@ -37,6 +37,15 @@ export interface GalleryItem {
   createdAt: number;
   settings: LineArtSettings;
   unlocked: boolean;
+  /**
+   * Référence de l'original côté serveur.
+   *
+   * Absente sur les dessins produits avant que les originaux ne quittent le
+   * navigateur : ceux-là gardent leur fichier en local et se débloquent par
+   * l'ancien chemin. On avait promis de pouvoir payer plus tard sans
+   * redessiner — ce n'est pas un déploiement qui va reprendre la promesse.
+   */
+  oeuvreId?: string;
 }
 
 export interface AccountState {

@@ -19,3 +19,6 @@ yarn-error.log*
 next-env.d.ts
 *.tsbuildinfo
 
+# Les coloriages des clients en développement local. En production c'est un
+# volume monté, jamais un chemin du dépôt.
+.donnees/
