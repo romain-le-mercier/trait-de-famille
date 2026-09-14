@@ -22,7 +22,8 @@ Baseline posée au branchement (2026-09-12) depuis les exports Search Console : 
 
 ### H0 — Offre payante en ligne et prouvée au 1er novembre (jusqu'au 2026-11-01)
 - Pourquoi : c'est la seule date qui compte ; sans vente possible, prouvée et visible, la saison de Noël ne se pilote pas.
-- Fait quand : (1) paywall serveur livré sur `origin/main` et en production, MEP datée au journal ; (2) un achat de bout en bout constaté (Stripe live, compte crédité, PDF livré), consigné au journal avec la date ; (3) `/admin/ventes` en production et premier relevé transcrit par Romain dans `retours-romain.md` ; (4) CGV / confidentialité sans `[à compléter]` ; (5) cible retenue pour le KPI nord.
+- Fait quand : **(1) FAIT — paywall serveur livré sur `origin/main` et en production** (commit `3461e05`, MEP constatée en ligne le 2026-09-13 à 13:31:31 UTC, `GET /api/oeuvres/…/debloquer` passé de 404 à 405) ; (2) un achat de bout en bout constaté (Stripe live, compte crédité, PDF livré), consigné au journal avec la date — **bloqué sur Stripe, non configuré en production, dépendance Romain** ; (3) `/admin/ventes` en production et premier relevé transcrit par Romain dans `retours-romain.md` ; (4) CGV / confidentialité sans `[à compléter]` ; (5) cible retenue pour le KPI nord.
+- **Le jalon « offre en ligne au 1er novembre » ne dépend plus du dev.** Le paywall est en production ; ce qui manque encore à H0 (achat prouvé, `/admin/ventes`, textes légaux) dépend soit de la configuration Stripe (Romain), soit de contenus qu'il doit fournir. Aucun ticket dev ne lève plus ce jalon seul.
 
 > **Dépendance datée, hors de portée du dev — arbitrage du 2026-09-12.**
 > Romain : « Stripe est codé mais **pas configuré en prod**. Je le ferai quand j'aurai un peu de
@@ -37,8 +38,9 @@ Baseline posée au branchement (2026-09-12) depuis les exports Search Console : 
 > saison de Noël se pilote sans offre payante — à acter explicitement, pas à constater en décembre.
 
 - Chantiers :
-  - **Livrer le paywall serveur resté hors dépôt** → T-001 (cette revue). État réel du code **non établi** : voir la décision du 2026-09-12.
-  - **Rendre les ventes lisibles (`/admin/ventes`)** → ticket pressenti T-003 à la revue du 2026-09-19, une fois T-001 livré (il lit la table `oeuvres`).
+  - **Paywall serveur : livré, revu et en production.** T-001 clos (`done/`), validé le 2026-09-13. Trois défauts sur le chemin de l'argent trouvés et corrigés avant MEP : double débit sur déblocages concurrents, livraison gratuite introduite par le premier correctif, pool de connexions qui se serait figé sous dix comptes à zéro crédit simultanés. Stripe reste non configuré (Romain) : le tunnel n'est toujours pas prouvé de bout en bout.
+  - **Régression trouvée en production, non prévue : le filigrane ne se dessine plus.** 10,68 % de pixels filigranés en local, 0,00 % en ligne — l'aperçu servi est un trait propre, la dissuasion a disparu (l'original reste protégé). Cause inconnue (texte SVG qui ne rend pas sur ce serveur) → T-003 (cette revue), diagnostic seul. Un correctif de conséquence (bandes diagonales, sans texte) est prêt hors dépôt, non commité, en attente d'un feu vert de Romain (voir Arbitrages).
+  - **Rendre les ventes lisibles (`/admin/ventes`)** → ticket pressenti pour la revue du 2026-09-19, une fois Stripe configuré ou à l'approche (il lit la table `oeuvres`).
   - **Prouver le tunnel par un achat réel de 2,99 €** → **accepté par Romain le 2026-09-12**. Dépend de la configuration Stripe live ci-dessus. Date de l'achat à écrire par Romain dans `retours-romain.md`.
   - **Solder les textes légaux** → dépend de Romain (contenu). Ticket dev seulement si le texte est fourni. **Contrainte ajoutée le 2026-09-12 : les prix sont TTC** (Romain assujetti à la TVA), donc les mentions de prix du site et les CGV doivent être cohérentes avec un affichage TTC.
 
@@ -68,6 +70,18 @@ Décisions écrites. Ne se discutent pas dans un ticket ; se contestent dans `_p
 
 Réponses reportées depuis `_pilotage/arbitrages.md`. Elles sortent des « Arbitrages attendus ».
 
+- 2026-09-13 (Romain) — **Le correctif du filigrane (T-000) est en production.** Commit `e31c103`, merge
+  `dadc448` (PR #2), poussé à 21:58. Romain a donné son accord **dans la session du projet**, après avoir
+  refusé de le faire sur un feu vert que je relayais depuis le pilotage — c'est la règle, et elle a bien
+  fonctionné : pousser sur `main` déclenche le déploiement, ce geste lui appartient.
+  **Reste dû : la mesure.** Le filigrane est constaté à l'œil sur le site, mais sa couverture n'a jamais été
+  chiffrée en production (30,19 % attendus ; si 41 %, le texte rend aussi en ligne et T-003 change de nature).
+  Bloqué par Cloudflare, voir l'arbitrage ci-dessous.
+- 2026-09-13 (Romain, déclaré — **non vérifié**) — **Le volume persistant sur `STOCKAGE_DIR` serait monté**
+  côté hébergeur : « le volume persistant est bien configuré ». Inscrit comme déclaration, pas comme fait :
+  personne ne l'a rejoué. Les deux preuves à portée sont un `ls` sur le chemin hôte, ou un original débloqué
+  avec succès **après** un redéploiement. T-001 a montré ce que vaut un « ça doit marcher » non rejoué — trois
+  défauts d'argent que la lecture de code n'avait pas vus. **À vérifier au prochain déploiement**, pas avant.
 - 2026-09-12 (Romain) — **Stripe n'est pas configuré en production** : « codé mais pas configuré,
   je le ferai quand j'aurai un peu de traction. » Conséquence : **dépendance datée sur Romain**, pas
   un ticket dev. Sans clés live et webhook déclaré avant le **2026-10-25**, l'offre ne peut pas être
@@ -94,8 +108,17 @@ Réponses reportées depuis `_pilotage/arbitrages.md`. Elles sortent des « Arbi
 
 - 2026-09-12 (Romain) — Cibles retenues en bloc (« 15 cibles : je valide tout ») : KPI nord 10 achats entre le 01/11 et le 15/12 ; pages indexées 60/90 au 15/11. Voir `KPIS.md`.
 - 2026-09-12 — **Quand poses-tu les clés Stripe live et le webhook en production ?** Tu dis attendre « un peu de traction » : aucune traction n'est mesurable sans vente, et aucune vente n'est possible sans cette configuration. Confirmes-tu la date butoir du **2026-10-25**, ou acte-t-on dès maintenant que la saison de Noël se fera **sans offre payante** — 25/10 / sans offre ?
+*(Les deux arbitrages du 2026-09-13 sont rendus, voir les décisions ci-dessous.)*
 
 ## Journal des revues
+
+### 2026-09-13 — paywall en production, régression filigrane
+
+- **T-001 clos et déployé** : commit `3461e05` sur `main`, MEP constatée en ligne à 13:31:31 UTC. Trois défauts sur le chemin de l'argent trouvés en revue adversariale (23 défauts, 10 corrigés) et réglés avant MEP : double débit concurrent, livraison gratuite introduite par le premier correctif, pool de connexions qui aurait figé le serveur sous dix comptes à zéro crédit.
+- **Régression trouvée en production seulement** : le filigrane ne se dessine plus (0,00 % de pixels filigranés en ligne contre 10,68 % en local) — texte SVG qui ne rend pas sur ce serveur, cause inconnue. Le paywall tient (original protégé), la dissuasion a disparu.
+- **Correctif de conséquence prêt hors ticket (T-000, bandes diagonales sans texte), non commité** : attend le feu vert de Romain (arbitrage ci-dessus).
+- T-003 écrit : établir la cause du non-rendu du texte SVG (diagnostic seul, pas de réécriture).
+- Le jalon « offre en ligne au 1er novembre » ne dépend plus du dev : reste Stripe (Romain), `/admin/ventes`, textes légaux.
 
 ### 2026-09-12 (soir) — report des arbitrages de Romain
 

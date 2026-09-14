@@ -17,6 +17,17 @@ au 2026-11-15** (baseline 24 / 76). Un statut de trajectoire pourra donc se pose
 rappelé que ce site est à 0 clic, 0 vente et moins de 30 jours de série : même avec une cible, aucune tendance
 ne se juge encore aujourd'hui, ni à la revue du 19/09 si le volume reste nul.
 
+**2026-09-13 — mise à jour : paywall en production, ce qui devient mesurable et ce qui ne l'est pas.**
+Le paywall serveur est livré (commit `3461e05`, MEP constatée à 13:31:31 UTC) : le déblocage, le quota et
+la non-fuite de l'original sont désormais des faits observables en production, pas des promesses de code.
+Ceci dit, **le KPI nord (ventes Stripe) reste à 0 par construction** : Stripe n'est pas configuré en
+production (clés live et webhook absents), donc **zéro achat n'est pas un échec de trajectoire, c'est une
+dépendance ouverte sur Romain**, inchangée depuis le 2026-09-12. Les cibles retenues (10 achats 01/11–15/12 ;
+60/90 pages indexées au 15/11) ne changent pas. Nouveau point à surveiller, hors cible chiffrée : le
+filigrane de l'aperçu gratuit ne se dessine pas en production (0,00 % de couverture contre 10,68 % en local)
+— la dissuasion à ne pas payer a disparu tant que le correctif prêt (T-000) n'est pas poussé (arbitrage
+attendu de Romain, voir `ROADMAP.md`).
+
 Note : Umami est en profil robot (pages/visite 1,2 ; 100 % sans référent ; 49 visites US sur 64) : il ne mesure pas l'audience de ce site. Ses événements de tunnel (`generation-reussie`, `paiement-reussi`) ne sont pas exposés par `umami-digest.js` ; ils ne servent pas de source KPI.
 
 ## Relevés
