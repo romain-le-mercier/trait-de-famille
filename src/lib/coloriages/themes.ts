@@ -514,6 +514,115 @@ const DINOSAURES: Sujet[] = [
   },
 ];
 
+/**
+ * Premier thème saisonnier. Il ne vaut que s'il est indexé avant les
+ * recherches de décembre : sur ce site, une page met une à deux semaines à
+ * entrer dans l'index.
+ *
+ * Le slug est la clé du dessin en base, tous thèmes confondus : d'où
+ * « sapin-de-noel » plutôt que « sapin », qui prendrait la place d'un futur
+ * sapin hors saison. « bonhomme-de-neige » fait exception : c'est l'expression
+ * exacte qu'on tape, et un futur thème hiver prendrait le suffixe à sa place.
+ */
+const NOEL: Sujet[] = [
+  {
+    slug: "sapin-de-noel",
+    nom: "un sapin de Noël décoré de boules et de guirlandes, une étoile au sommet, des paquets à son pied",
+    titre: "Coloriage sapin de Noël à imprimer",
+    intro:
+      "Un sapin décoré de boules et de guirlandes, l'étoile au sommet et les paquets à son pied. Chaque boule est un petit rond fermé : on peut n'en colorier aucune pareille à sa voisine.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "pere-noel",
+    nom: "le Père Noël debout de face, barbe jusqu'à la ceinture, long manteau serré par une large ceinture, bonnet à pompon, sa hotte pleine de jouets sur l'épaule",
+    titre: "Coloriage Père Noël à imprimer",
+    intro:
+      "Le Père Noël de face, la barbe jusqu'à la ceinture et la hotte débordant de jouets sur l'épaule. Le manteau se remplit en deux coups de feutre rouge ; la barbe, elle, se laisse blanche.",
+    difficulte: "tout-petit",
+  },
+  {
+    slug: "renne-de-noel",
+    nom: "un renne de profil, grands bois ramifiés, un grelot au collier",
+    titre: "Coloriage renne de Noël à imprimer",
+    intro:
+      "Un renne de profil, les bois ramifiés au-dessus de la tête et un grelot au collier. Les bois se divisent en branches fines : c'est la partie qui demande une main plus sûre.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "bonhomme-de-neige",
+    nom: "un bonhomme de neige en trois boules, écharpe, chapeau haut-de-forme, nez en carotte et bras en branches",
+    titre: "Coloriage bonhomme de neige à imprimer",
+    intro:
+      "Un bonhomme de neige en trois boules, avec son écharpe, son chapeau et sa carotte en guise de nez. Presque tout reste blanc : l'enfant ne colorie que les accessoires, et le dessin est fini en dix minutes.",
+    difficulte: "tout-petit",
+  },
+  {
+    slug: "cadeau-de-noel",
+    nom: "trois paquets cadeaux empilés, du plus grand en bas au plus petit en haut, rubans et gros nœuds, un papier à rayures, un à pois, un à étoiles",
+    titre: "Coloriage cadeau de Noël à imprimer",
+    intro:
+      "Trois paquets empilés, du plus grand au plus petit, chacun avec son ruban et son nœud. Le papier est laissé à motifs simples : rayures, pois, étoiles — une couleur par paquet suffit à les distinguer.",
+    difficulte: "tout-petit",
+  },
+  {
+    slug: "boule-de-noel",
+    nom: "une grosse boule de Noël suspendue à une branche de sapin, couverte de bandes, de losanges et de flocons",
+    titre: "Coloriage boule de Noël à imprimer",
+    intro:
+      "Une grosse boule suspendue à une branche de sapin, couverte de bandes, de losanges et de flocons. Chaque bande peut prendre sa couleur, et les flocons restent blancs pour trancher.",
+    difficulte: "ado",
+  },
+  {
+    slug: "bonnet-de-noel",
+    nom: "un bonnet de Noël à pompon, bordure en fourrure, la pointe retombant sur le côté",
+    titre: "Coloriage bonnet de Noël à imprimer",
+    intro:
+      "Un bonnet à pompon, la pointe qui retombe et la bordure en fourrure. Deux grandes zones et une petite : c'est le plus simple de la série, fait pour les plus jeunes.",
+    difficulte: "tout-petit",
+  },
+  {
+    slug: "traineau-du-pere-noel",
+    nom: "le traîneau du Père Noël chargé de paquets empilés, caisse ornée de volutes, patins recourbés, glissant sur la neige",
+    titre: "Coloriage traîneau du Père Noël à imprimer",
+    intro:
+      "Le traîneau chargé de cadeaux, les patins recourbés glissant sur la neige. Les volutes de la caisse et les paquets empilés font un dessin riche, à colorier en plusieurs séances.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "lutin-de-noel",
+    nom: "un lutin de Noël souriant, oreilles pointues, bonnet à grelot, col, ceinture et chaussons pointus, tenant un marteau devant un cheval de bois",
+    titre: "Coloriage lutin de Noël à imprimer",
+    intro:
+      "Un lutin aux oreilles pointues, le marteau à la main devant un cheval de bois. Sa tenue est découpée en petites pièces — col, ceinture, chaussons — qui appellent chacune leur couleur.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "buche-de-noel",
+    nom: "une bûche de Noël sur un plat, écorce en crème striée, décorée de houx et de champignons en meringue",
+    titre: "Coloriage bûche de Noël à imprimer",
+    intro:
+      "Une bûche sur son plat, l'écorce striée à la fourchette et décorée de houx et de champignons en meringue. À colorier en chocolat, en marron glacé ou en framboise — selon celle qu'on mangera le 25.",
+    difficulte: "enfant",
+  },
+  {
+    slug: "couronne-de-noel",
+    nom: "une couronne de Noël à suspendre à la porte, sans bougies, en branches de sapin aux aiguilles dessinées une à une, pommes de pin, baies de houx et un grand nœud en bas",
+    titre: "Coloriage couronne de Noël à imprimer",
+    intro:
+      "Une couronne de branches de sapin, garnie de pommes de pin, de baies de houx et d'un grand nœud. Les aiguilles sont dessinées une à une : c'est le coloriage le plus long de la série, pour les grands.",
+    difficulte: "ado",
+  },
+  {
+    slug: "chaussette-de-noel",
+    nom: "une chaussette de Noël suspendue à la cheminée, large revers blanc uni laissé vide, un sucre d'orge et un ourson qui dépassent",
+    titre: "Coloriage chaussette de Noël à imprimer",
+    intro:
+      "Une chaussette pendue à la cheminée, d'où dépassent un sucre d'orge et un ourson. Le revers est assez large pour y écrire son prénom avant de la colorier.",
+    difficulte: "tout-petit",
+  },
+];
+
 export const THEMES: Theme[] = [
   {
     slug: "animaux",
@@ -534,6 +643,16 @@ export const THEMES: Theme[] = [
     excerpt:
       "Du T-Rex au bébé qui sort de l'œuf : vingt-deux dessins au trait, classés du plus simple au plus exigeant.",
     sujets: DINOSAURES,
+  },
+  {
+    slug: "noel",
+    nom: "Noël",
+    titre: "Coloriages de Noël à imprimer",
+    description:
+      "Des coloriages de Noël gratuits à imprimer en A4 : sapin, Père Noël, renne, bonhomme de neige, bûche et chaussette. Du bonnet pour les tout-petits à la couronne pour les grands, contours nets et zones fermées.",
+    excerpt:
+      "Du sapin décoré au traîneau chargé de cadeaux : des dessins au trait pour patienter jusqu'au 25.",
+    sujets: NOEL,
   },
 ];
 
