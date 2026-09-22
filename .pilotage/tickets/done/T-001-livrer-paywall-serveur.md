@@ -308,3 +308,19 @@ est déclaré, justifié et tient en une ligne.
 > - Le poste ne peut pas construire ce projet en Node 18 (WSL) ; seul un
 >   conteneur `node:20` le peut. Vrai et déjà remonté par le dev — à garder en
 >   tête pour la prochaine revue, ce n'est pas un défaut de ce ticket.
+
+---
+
+**Audité le 2026-09-17 par pm-lead : validation NON CONTESTÉE, le ticket reste en `done/`.**
+La clôture était en avance sur la mise en production — trois critères y étaient déclarés « non
+vérifiables », correctement et sans être cochés — et le journal a comblé l'écart après coup : MEP
+constatée en ligne le 2026-09-13 à 13:31:31 UTC (commit `3461e05`, `GET /api/oeuvres/…/debloquer`
+passé de 404 à 405, quota 3 → 2, en-tête `x-oeuvre` présent). **Deux réserves restent ouvertes et ne
+se referment pas par cette clôture** : (1) le correctif du pool de connexions est vérifié par lecture
+de code, **jamais sous charge réelle** ; (2) le volume persistant sur `STOCKAGE_DIR` est **déclaré
+monté par Romain le 13/09 et n'a jamais été rejoué** — la preuve attendue reste un original débloqué
+avec succès **après** un redéploiement. Rappel de la leçon de ce ticket même : trois défauts sur le
+chemin de l'argent n'y sont apparus qu'à l'exécution, pas à la lecture. **Ce que la clôture ne règle
+pas non plus** : le tunnel de paiement n'a jamais été parcouru de bout en bout, Stripe n'étant pas
+configuré en production (décision de Romain du 14/09) — c'est une dépendance ouverte, pas un défaut
+de ce ticket. Aucune action demandée au dev.
