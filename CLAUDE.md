@@ -27,6 +27,7 @@ Quatre commandes : `/ticket [T-xxx]` pour prendre, `/review` avant de rendre (ci
 - Je fais **ce que dit le ticket, et rien de la section « Hors périmètre »**. Ce que je remarque en passant va dans « Retour dev », pas dans le code.
 - Si le ticket est faux, impossible, ou si son critère de fin n'est pas vérifiable : je l'écris dans « Retour dev », je le passe en `review/`, je m'arrête. Je ne corrige pas la roadmap, je ne réinterprète pas.
 - Une demande de Romain hors ticket : je la fais si elle est petite et je la consigne au journal avec `T-000` ; sinon je lui demande un ticket.
+- Je ne touche à rien hors de ce dépôt : pas de `docker system/volume/image prune`, pas de suppression de conteneurs, volumes ou fichiers que je n'ai pas créés moi-même pendant ce ticket.
 
 ## Livrer
 
