@@ -1,6 +1,7 @@
 ---
 name: ticket
 description: Prendre un ticket dev dans ce projet. Usage : /ticket [T-xxx]. Sans argument, prend le premier ticket de .pilotage/tickets/todo/. Lit la roadmap, déplace le ticket en doing/, crée la branche, puis commence le travail dans le périmètre du ticket.
+model: sonnet
 ---
 
 # /ticket [T-xxx]
