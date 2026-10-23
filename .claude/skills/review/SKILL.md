@@ -7,6 +7,17 @@ description: Revue adversariale du ticket en cours avant livraison. Usage : /rev
 
 Cinq reviewers cherchent à casser le code, un sixième cherche à casser leurs conclusions. Le dev ne corrige que ce qui survit.
 
+## Niveau de revue (2026-10-23)
+
+La revue se proportionne au risque. Lis la ligne `Niveau de revue` du ticket ; absente, déduis-la, et dans le doute c'est **complet**.
+- **léger** : le diff ne touche ni authentification, ni paiement, ni données personnelles, ni requête SQL, ni upload,
+  ni exécution de commande, ni secret, ni configuration serveur (typiquement : title, meta, texte, CSS, sitemap,
+  gabarit sans entrée utilisateur). **Un seul reviewer**, le plus pertinent (`reviewer-seo` pour un ticket SEO,
+  `reviewer-fiabilite` sinon), sans contre-expert : ses défauts qui ont un scénario et une ligne se corrigent.
+- **complet** : tout le reste. Le déroulé ci-dessous, en entier.
+
+Dans les deux cas, `/valider` (le valideur) reste obligatoire avant la MEP. La ligne tracée dans le Retour dev dit le niveau.
+
 ## Déroulé
 
 1. **Périmètre** : le ticket est dans `.pilotage/tickets/doing/` (sinon, s'arrêter). Diff à revoir :
