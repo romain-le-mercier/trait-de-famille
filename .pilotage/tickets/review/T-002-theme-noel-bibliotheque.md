@@ -100,4 +100,17 @@ Reviewers exécutés en agents généralistes appliquant leur définition `~/.cl
 
 ## Validation PM
 
-*(rempli par pm-lead au passage en done/ ou au renvoi en todo/)*
+**VALIDÉ** le 2026-10-24 par /valider (agent valideur). Le ticket reste en `review/` : passage en `done/`, merge et MEP reviennent au chef d'orchestre.
+
+Critères rejoués :
+- [atteint] `themes.ts` : thème `noel`, 12 `slug:`, 0 doublon d'`intro` (`sort | uniq -d`).
+- [NON VÉRIFIABLE] `/admin/coloriages` liste les 12 brouillons : 404 sans session ; existence prouvée par les 12 pages publiées.
+- [atteint] Sitemap 200, 86 URL dont 13 Noël (thème + 12 sujets) toutes en 200 ; aucun doublon de title ni de meta description ; 13 descriptions non vides.
+- [NON VÉRIFIABLE] `npm run typecheck` / `lint` : `tsc: not found` (pas de `node_modules`) ; `git diff 3d69377 HEAD -- src migrations` vide, donc code inchangé depuis le passage du 22/09, non rejoué.
+- [atteint] MEP du code ≤ 2026-10-05 : commit `941f8e1` du 2026-09-22 sur `main`, pages Noël en ligne ; heure réelle de déploiement non relevée.
+
+Périmètre respecté : le diff `main...ticket/T-002` ne contient que le déplacement du ticket et le journal.
+
+Réserves du valideur (telles quelles) :
+- Le nombre d'appels modèle et la date de publication du dernier dessin ne sont pas consignés. Le ticket le déclare et renvoie à Romain.
+- Les deux critères non rejoués (liste admin, typecheck/lint) reposent sur la déclaration du dev. Le risque est faible.

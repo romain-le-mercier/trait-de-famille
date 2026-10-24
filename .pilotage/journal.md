@@ -16,3 +16,4 @@ Ce que personne d'autre ne peut relever : la date exacte de mise en production, 
 | 2026-09-22 | T-002 | pris | | | |
 | 2026-10-24 | T-002 | livré (fait) | 941f8e1 | sitemap 73 → 86 URL ; 12 sujets Noël, 12 dessins publiés, 12 pages 200 à title/description distincts | Code mergé le 22/09 et en ligne ; les 8 sujets nommés par la description sont publiés. Revue du 22/09 toujours valable (code inchangé depuis). |
 | 2026-10-24 | T-002 | MEP vérifiée en ligne | 941f8e1 | `/coloriages/noel` absent du sitemap le 22/09 → présent avec 12 sujets le 24/10 | Date de MEP retenue = merge du 2026-09-22 (Coolify au push) ; constat en ligne fait le 24/10 seulement, heure réelle du déploiement non relevée. |
+| 2026-10-24 | T-002 | validé | d8f580b | — | Reste en review/ (done/, merge et MEP au chef d'orchestre). Réserves : appels modèle et date du dernier dessin non consignés ; liste admin et typecheck/lint non rejoués (déclaration du dev, risque faible). |
