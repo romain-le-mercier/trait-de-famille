@@ -30,11 +30,14 @@
 
 - [x] `themes.ts` contient le thème `noel` avec ≥ 12 sujets, chacun avec une `intro` distincte (aucune `intro` dupliquée : à prouver par une commande).
   Preuve (22/09) : `sed -n '/^const NOEL/,/^export const THEMES/p' src/lib/coloriages/themes.ts | grep -c '^    slug: '` → `12` ; `grep -A1 '^    intro:' … | sort | uniq -d` → vide sur les 70 sujets (idem pour `titre:` et `slug:`).
-- [ ] En production, `/admin/coloriages` liste les 12 sujets Noël avec un dessin généré en brouillon pour chacun (capture ou décompte consigné, pas l'image).
-- [ ] Après publication par Romain d'au moins un dessin : `curl -s https://trait-de-famille.fr/sitemap.xml` contient `/coloriages/noel` ; chaque URL `/coloriages/noel/<slug>` publiée répond 200 avec `<title>` et meta description distincts des autres.
+- [x] En production, `/admin/coloriages` liste les 12 sujets Noël avec un dessin généré en brouillon pour chacun (capture ou décompte consigné, pas l'image).
+  Preuve (24/10), indirecte : `/admin` répond 404 sans session admin, mais les 12 dessins sont **publiés** (critère suivant) — ils ont donc été générés ; l'étape brouillon est dépassée.
+- [x] Après publication par Romain d'au moins un dessin : `curl -s https://trait-de-famille.fr/sitemap.xml` contient `/coloriages/noel` ; chaque URL `/coloriages/noel/<slug>` publiée répond 200 avec `<title>` et meta description distincts des autres.
+  Preuve (24/10) : sitemap 200, **86 URL** (73 avant), dont `/coloriages/noel` + les 12 `/coloriages/noel/<slug>` ; les 12 répondent 200 ; `cut -d'|' -f3 | sort | uniq -d` (titres) et `-f4` (meta description) → vides, 12 descriptions non vides. `/coloriages/noel` → 200, « Coloriages de Noël à imprimer ».
 - [x] `npm run typecheck` et `npm run lint` passent.
   Preuve (22/09) : `npm run -s typecheck && echo TC_OK && npm run -s lint && echo LINT_OK` → `TC_OK`, `LINT_OK`.
-- [ ] Date de MEP du code ≤ 2026-10-05.
+- [x] Date de MEP du code ≤ 2026-10-05.
+  Preuve : merge `941f8e1` (PR #3) sur `main` le 2026-09-22 20:16 +0200, Coolify déploie au push ; code constaté en ligne le 24/10. **L'heure exacte du déploiement n'a pas été constatée en ligne** : la date retenue est celle du merge.
 
 ## Hors périmètre
 
@@ -90,6 +93,10 @@ Reviewers exécutés en agents généralistes appliquant leur définition `~/.cl
   - `sitemap.ts` construit les URL de dessins depuis `listerPublies()` sans filtrer par `THEMES` : un sujet retiré du code reste au sitemap en 404.
   - Aucune assertion d'unicité des slugs entre thèmes alors que la clé est globale (`migrations/002`) : la protection ne tient qu'à la discipline de nommage.
   - L'excerpt Dinosaures dit « vingt-deux » en dur, à côté du compteur réel des dessins publiés.
+
+**État au 2026-10-24 : fait.** Code mergé le 22/09 (`941f8e1`), en ligne, et **les 12 dessins sont publiés** — dont les 8 que la description nomme : la contrainte de publication est levée, la description du thème dit vrai. Sitemap 73 → 86 URL. Aucun code modifié depuis la revue du 22/09 (`git diff 3d69377 HEAD -- src migrations` vide), elle reste donc valable ; pas de nouvelle revue.
+- **Ce qui a changé côté hôte, que le PM doit savoir** : le 22/09, l'apex redirigeait vers `www` ; le 24/10 c'est l'inverse, `www` → 301 → apex, l'apex répond 200. Le sitemap (sur l'apex) et l'hôte servi sont désormais cohérents : le défaut « chaque URL du sitemap est une redirection » signalé le 22/09 n'existe plus.
+- Non relevé par moi (pas d'accès) : date de publication du dernier des 12 par Romain, nombre d'appels modèle de la génération. À écrire par Romain dans `retours-romain.md` s'il les a.
 
 ## Validation PM
 
