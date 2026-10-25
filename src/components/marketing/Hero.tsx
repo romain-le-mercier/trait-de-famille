@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Eye, Palette, Printer, Sparkles, WalletMinimal } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
@@ -13,7 +13,8 @@ const REASSURANCES = [
   { icon: Printer, label: "Prêt à imprimer en A4" },
 ];
 
-export function Hero() {
+/** `noel` : les liens vers les fiches Noël, rendus côté serveur sous l'accroche 🎄. */
+export function Hero({ noel }: { noel?: ReactNode }) {
   const [play, setPlay] = useState(0);
   const [visible, setVisible] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -93,6 +94,7 @@ export function Hero() {
               Coloriages de Noël gratuits à imprimer
             </Link>
           </p>
+          {noel}
 
           <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-muted">
             {REASSURANCES.map(({ icon: Icon, label }) => (

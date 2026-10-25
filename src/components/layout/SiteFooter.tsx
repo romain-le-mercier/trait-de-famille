@@ -12,6 +12,7 @@ const LEGAL = [
 /** Liens vers le contenu éditorial : la seule porte d'entrée organique. */
 const RESSOURCES = [
   { href: "/coloriages", label: "Coloriages gratuits à imprimer" },
+  { href: "/coloriages/noel", label: "Coloriages de Noël" },
   { href: "/guides", label: "Tous les guides" },
   ...guidesByDate()
     .slice(0, 3)

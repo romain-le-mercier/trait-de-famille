@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Examples } from "@/components/marketing/Examples";
@@ -10,7 +11,11 @@ import { Pricing } from "@/components/marketing/Pricing";
 import { Trust } from "@/components/marketing/Trust";
 import { UseCases } from "@/components/marketing/UseCases";
 import { PACKS } from "@/lib/pricing";
+import { listerFichesNoel } from "@/lib/server/coloriages";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
+
+// Les liens vers les fiches Noël se lisent en base à chaque requête.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -48,12 +53,28 @@ const productSchema = {
   })),
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const fichesNoel = await listerFichesNoel();
+
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
       <main>
-        <Hero />
+        <Hero
+          noel={
+            fichesNoel.length > 0 && (
+              <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm font-semibold">
+                {fichesNoel.map((fiche) => (
+                  <li key={fiche.slug}>
+                    <Link href={fiche.href} className="text-muted hover:text-grape">
+                      {fiche.titre}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
+        />
         <HowItWorks />
         <Examples />
         <UseCases />

@@ -1,4 +1,5 @@
 import { getPool } from "./pool";
+import { getTheme, nomFichierImage } from "@/lib/coloriages/themes";
 
 /**
  * Les dessins de la bibliothèque, en base.
@@ -182,4 +183,42 @@ export async function changerStatut(slug: string, statut: Statut): Promise<boole
 export async function supprimer(slug: string): Promise<void> {
   // L'image part avec, par la clé étrangère ON DELETE CASCADE.
   await getPool().query("DELETE FROM coloriages WHERE slug = $1", [slug]);
+}
+
+export interface FicheNoel {
+  slug: string;
+  titre: string;
+  href: string;
+  /** L'image servie, `/coloriages/image/<fichier>`. */
+  fichier: string;
+}
+
+/**
+ * Les fiches Noël publiées, dans l'ordre éditorial du thème, pour les liens
+ * posés hors du thème (accueil, fiches des autres thèmes). Lues en base : un
+ * dessin dépublié ne doit pas devenir un lien mort.
+ *
+ * Une base qui ne répond pas rend une liste vide plutôt qu'une erreur : ces
+ * liens ne valent pas une page d'accueil en 500.
+ */
+export async function listerFichesNoel(): Promise<FicheNoel[]> {
+  const theme = getTheme("noel");
+  if (!theme) return [];
+  let publies: Map<string, string>;
+  try {
+    publies = new Map(
+      (await listerPublies(theme.slug)).map((dessin) => [dessin.slug, dessin.mime]),
+    );
+  } catch (error) {
+    console.error("Fiches Noël illisibles en base :", error);
+    return [];
+  }
+  return theme.sujets
+    .filter((sujet) => publies.has(sujet.slug))
+    .map((sujet) => ({
+      slug: sujet.slug,
+      titre: sujet.titre,
+      href: `/coloriages/${theme.slug}/${sujet.slug}`,
+      fichier: nomFichierImage(sujet.slug, publies.get(sujet.slug)!),
+    }));
 }

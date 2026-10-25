@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { FlowHeader } from "@/components/layout/FlowHeader";
 import { UploadFlow } from "./UploadFlow";
 
@@ -18,6 +19,12 @@ export default function CreerPage() {
       <main className="doodle-dots flex flex-1 items-start justify-center px-4 py-10 md:py-14">
         <UploadFlow />
       </main>
+      <p className="px-4 pb-8 text-center text-sm font-semibold">
+        🎄{" "}
+        <Link href="/coloriages/noel" className="text-muted hover:text-grape">
+          Coloriages de Noël gratuits à imprimer
+        </Link>
+      </p>
     </div>
   );
 }

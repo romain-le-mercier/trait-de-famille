@@ -12,10 +12,31 @@ import {
   getTheme,
   nomFichierImage,
 } from "@/lib/coloriages/themes";
-import { getColoriage, listerPublies } from "@/lib/server/coloriages";
+import {
+  getColoriage,
+  listerFichesNoel,
+  listerPublies,
+  type FicheNoel,
+} from "@/lib/server/coloriages";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
+
+const FICHES_NOEL_PAR_PAGE = 6;
+
+/**
+ * Six fiches Noël consécutives, à partir d'un décalage tiré du slug : chaque
+ * page en lie toujours les mêmes, et toutes les fiches Noël reçoivent des liens.
+ */
+function choisirFichesNoel(fiches: FicheNoel[], slug: string): FicheNoel[] {
+  if (fiches.length <= FICHES_NOEL_PAR_PAGE) return fiches;
+  let decalage = 0;
+  for (const car of slug) decalage = (decalage * 31 + car.charCodeAt(0)) % fiches.length;
+  return Array.from(
+    { length: FICHES_NOEL_PAR_PAGE },
+    (_, i) => fiches[(decalage + i) % fiches.length],
+  );
+}
 
 interface Params {
   params: Promise<{ theme: string; slug: string }>;
@@ -86,6 +107,11 @@ export default async function ColoriagePage({ params }: Params) {
         : null;
     })
     .filter((autre): autre is NonNullable<typeof autre> => autre !== null);
+
+  const noel =
+    theme.slug === "noel"
+      ? []
+      : choisirFichesNoel(await listerFichesNoel(), slug);
 
   // ImageObject : c'est l'image qui est le contenu de cette page, et c'est par
   // Google Images que passe l'essentiel du trafic sur ces requêtes.
@@ -222,6 +248,35 @@ export default async function ColoriagePage({ params }: Params) {
                     className="aspect-square w-full rounded-tile border-2 border-line bg-white object-contain"
                   />
                   <span className="mt-2 text-sm font-bold">{autre.titre}</span>
+                </Link>
+              </Card>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {noel.length > 0 && (
+        <section className="mt-14">
+          <h2 className="font-display text-2xl font-bold">
+            <Link href="/coloriages/noel" className="hover:text-grape">
+              Coloriages de Noël
+            </Link>
+          </h2>
+          <ul className="mt-5 grid gap-4 grid-cols-2 lg:grid-cols-6">
+            {noel.map((fiche) => (
+              <Card as="li" key={fiche.slug} className="p-0">
+                <Link
+                  href={fiche.href}
+                  className="flex h-full flex-col p-3 transition-colors hover:bg-paper"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/coloriages/image/${fiche.fichier}`}
+                    alt={fiche.titre}
+                    loading="lazy"
+                    className="aspect-square w-full rounded-tile border-2 border-line bg-white object-contain"
+                  />
+                  <span className="mt-2 text-sm font-bold">{fiche.titre}</span>
                 </Link>
               </Card>
             ))}
