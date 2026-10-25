@@ -99,4 +99,20 @@ dimensions ni alt), 1 mineur noté, 0 hérité, 0 réfuté.
 
 ## Validation PM
 
-*(rempli au passage en done/ ou au renvoi en todo/)*
+**VALIDÉ** le 2026-10-25 par /valider (agent valideur). Reste en `review/` : passage en `done/`, merge, push et MEP reviennent au chef d'orchestre.
+
+Critères rejoués (local, branche `ticket/T-004`, build de prod, Postgres jetable peuplé des 70 sujets) :
+- [atteint] Un seul `<h1` sur `/coloriages`, `/coloriages/noel`, `/coloriages/animaux` (1/1/1, et 1 sur `/coloriages/dinosaures`). Le « 0 sur main » non rejoué, plausible au diff (`SectionTitle` rendait un h2 en dur).
+- [atteint] L'accueil contient `href="/coloriages/noel"` (1 occurrence, `Hero.tsx`).
+- [atteint] `/coloriages/noel` : og:image = `…/coloriages/image/coloriage-sapin-de-noel-a-imprimer.png` avec width/height/alt (accueil : `/opengraph-image?…`) ; og:description et twitter:description contiennent « Noël ».
+- [atteint] Fiche `/coloriages/noel/sapin-de-noel` : lien Pinterest (url, media, description encodés), `wa.me/?text=…`, « Copier le lien » ; aucun `<script src>` hors `/_next/`. Requêtes réseau et presse-papiers non rejoués (pas de Chromium), code cohérent.
+- [atteint, lecture du code] Événements Umami au clic : `coloriage-telecharge` {format, slug}, `coloriage-partage` {canal, slug} via `window.umami.track`. Clic non exécuté en navigateur.
+- [atteint, lecture du diff] Fiches animaux/dinosaures : title et description intacts ; seuls `twitter` et `openGraph` enrichis. `npx tsc --noEmit` sans erreur.
+
+Périmètre respecté (9 fichiers `src`, ni sitemap, ni `force-dynamic`, ni dessins, ni refonte de l'accueil).
+
+Réserves du valideur, telles quelles :
+- Toutes les preuves sont locales. Rien n'a été vérifié en ligne, ce qui est normal avant la MEP. Après la MEP, il faudra contrôler que l'og:image de Noël est bien servie en prod, avec les vraies dimensions.
+- La revue adversariale est de niveau léger, alors que le cadre prévoit le niveau complet dans le doute. Elle est tolérée ici, mais le périmètre est large.
+- `/coloriages` (le hub) garde l'aperçu de partage générique. Le dev le signale lui-même et propose un futur ticket.
+- Les dessins sont en portrait A4 : Facebook et WhatsApp recadreront la vignette.
