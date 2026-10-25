@@ -6,6 +6,7 @@ Sans cible retenue, aucun statut de trajectoire n'est posé.
 | KPI | Source | Baseline | Période baseline | Cible proposée | Cible retenue | Échéance | Fréquence |
 |---|---|---|---|---|---|---|---|
 | Ventes Stripe 28 j (nb achats, € encaissés) — **KPI nord** | à créer : page `/admin/ventes` (agrégats Postgres `purchases`), relevée par Romain dans `retours-romain.md` | 0 / 0 € (aucune vente connue, aucune source) | au 2026-09-12 | 10 achats entre le 01/11 et le 15/12 | **10 achats — retenue par Romain le 2026-09-12, SUSPENDUE le 2026-09-14** | 2026-11-01 → 2026-12-15 (**inatteignable par construction, voir note**) | Hebdo à partir du 01/11 |
+| **Pages Noël indexées (13 URL) — chiffre objectif depuis le 2026-10-25** | `gsc-inspect.js` (API URL Inspection), verdict PASS | 0 / 13 | au 2026-10-25 | **8 / 13** | à retenir par le conseil | 2026-11-20 | J+14 de T-006, puis le 20/11 |
 | Pages indexées | GSC Indexation > Pages | 24 / 76 connues (sitemap : 73 URL vérifiées en ligne le 2026-09-12) | relevé du 2026-09-04 | 60 / 90 (dont thème Noël) | **60 / 90 — retenue par Romain le 2026-09-12** ; **dénominateur corrigé le 2026-09-17, voir note** | 2026-11-15 | Hebdo |
 | Clics organiques 28 j | GSC Performance | 0 | 28 j au 2026-09-06 | | | | Hebdo |
 | Position moyenne 28 j | GSC Performance | 18.9 (fenêtre de 14 j, 26 requêtes — **non comparable**, voir note du 2026-09-17) | idem | | | | Hebdo |
@@ -92,12 +93,24 @@ la saison 2026 est vendue à 0 € quoi qu'il arrive.
 
 Note : Umami est en profil robot (pages/visite 1,2 ; 100 % sans référent ; 49 visites US sur 64) : il ne mesure pas l'audience de ce site. Ses événements de tunnel (`generation-reussie`, `paiement-reussi`) ne sont pas exposés par `umami-digest.js` ; ils ne servent pas de source KPI.
 
+## Chiffre objectif du site (posé le 2026-10-25, règle de Romain du 25/10)
+
+**Pages Noël indexées : 0 / 13 au 2026-10-25 → cible proposée 8 / 13 au 2026-11-20.**
+Source : `node _pilotage/scripts/gsc-inspect.js trait-de-famille <13 URL>` (hub `/coloriages/noel` + 12 fiches, apex
+`https://trait-de-famille.fr`). Compte « indexée » = verdict PASS « Envoyée et indexée », rien d'autre.
+Cible **proposée**, à retenir par le conseil. Pourquoi ce chiffre et pas les clics : à 0 clic et 1 impression par
+semaine, aucun clic ne se juge avant le 20/11 ; l'indexation est la condition de tout clic de Noël et se mesure
+page par page. Le clic vient ensuite : premier clic sur une page Noël avant le 15/12, confiance faible (~20 %, pm-seo).
+
 ## Relevés
 
 Le plus récent en haut. Date de l'export lu, pas de la revue.
 
 | Date export | KPI | Valeur | Écart cible | Statut | Note |
 |---|---|---|---|---|---|
+| 2026-10-25 (URL Inspection, 86 URL) | **Pages Noël indexées (objectif)** | **0 / 13** | cible proposée 8 / 13 au 2026-11-20 : **−8** | **baseline** | Deux passages le même jour : 0 / 13 aux deux. Le détail « Détectée, non indexée » / « inconnue » **change d'un passage à l'autre** (7 puis 2 détectées) : on ne lit que indexée oui / non. Sitemap lu par Google le 22/10 avec 86 URL, 0 erreur (`gsc-sitemaps.js`) : les URL sont soumises, pas visitées. |
+| 2026-10-25 (URL Inspection, 86 URL) | Pages indexées (site) | **49 / 86 au sitemap** | cible 60 au 2026-11-15 : **−11** | **à surveiller** | 43 / 73 au 14/09. Animaux 37 / 37 (hub compris). Dinosaures : hub + 3 fiches indexées, **15 fiches en « Erreur liée à des redirections » crawlées du 15 au 21/09**, soit pendant la boucle de redirection corrigée le 22/09, jamais recrawlées depuis ; 3 inconnues, 1 détectée. Non indexées aussi : `/coloriages` (détectée), 3 guides et `/confidentialite` (inconnus). |
+| 2026-10-18 (Performance, API) | Clics 28 j | **0** | non définie | non jugeable | 1 impression sur 7 j (contre 33 au 14/09), 30 jours à 0 impression sur 56. Chute non datée ; le recul des fiches dinosaures en erreur de redirection en est un candidat, non prouvé. |
 | 2026-09-14 (Coverage) | **Pages indexées** | **43 / 73 au sitemap** (43 / 76 connues) | cible 60 au 2026-11-15 : **−17** | **à surveiller** | +19 en dix jours à **corpus constant** (76 connues aux deux relevés, aucune page publiée depuis le 28/08) : c'est une **file dormante traitée par Google**, décomposition exacte Crawled 7→1 (+6) et Discovered 42→29 (+13). **Mais série PLATE à 43 du 09 au 14/09** : un palier, pas une pente — **un seul point de vitesse ne fait pas un rythme**, donc ni « on track » ni « décroché ». 72 % du chemin fait, 59 jours restants. **Dénominateur corrigé : 73 (sitemap), pas 90** — le 90 n'est relié à aucun corpus mesuré (86 au mieux si T-002 livre). **Point de contrôle : encore 43 au relevé du 2026-09-30 ⇒ décroché.** |
 | 2026-09-14 (Coverage) | Motifs de non-indexation | Discovered 29 · noindex 2 · redirect 1 · Crawled 1 | — | **instruit** | Les **2 noindex sont VOLONTAIRES**, vérifié dans le code (six pages en `robots: {index:false}`, aucune au sitemap) : aucun accident, aucun ticket. Les **29 Discovered** sont le reste du stock : ni fond mort ni file en cours de vidage — **une file qui se traite par vagues espacées**, un tiers parti en une vague puis six jours sans rien. Le « 1 redirect » n'est pas identifiable (le digest ne nomme aucune URL) et n'est pas vérifiable en ligne (403 Cloudflare). |
 | 2026-09-14 (Performance) | Clics 28 j | **0** | cible non définie | **cible non définie — non jugeable** | Le site n'a jamais eu un clic. 22 j de série (< 30) et 0 clic : **aucune tendance, aucun pourcentage**. |

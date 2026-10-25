@@ -20,6 +20,47 @@ Baseline posée au branchement (2026-09-12) depuis les exports Search Console : 
 - **Correction du 2026-09-17** : `themes.ts` déclare **63 sujets**, et non 67 comme écrit ici depuis le branchement. Pour 58 publiés, cela ferait **5 dessins générés et jamais publiés** — déduction de code, la base n'étant pas lisible depuis le pilotage. Si elle est juste, **la publication un par un par Romain est déjà le goulot**, avant même que T-002 ajoute 12 sujets.
 - **Corpus servi, arrêté le 2026-09-17** : le sitemap sert **73 URL** (vérifiées en ligne le 12/09, avant le blocage Cloudflare), reconstituées terme à terme par `src/app/sitemap.ts`. `76 connues = 73 sitemap + 2 noindex + 1 redirect` ; `73 sitemap = 43 indexées + 29 Discovered + 1 Crawled`. **Le dénominateur qui fait foi est 73, pas 76, pas 90.**
 
+## Objectif du site et paris (revue du 2026-10-25)
+
+**Chiffre objectif : pages Noël indexées, 0 / 13 au 2026-10-25 → 8 / 13 au 2026-11-20 (cible proposée, au conseil).**
+Mesuré par `gsc-inspect.js` (API URL Inspection) sur le hub `/coloriages/noel` et ses 12 fiches. Détail dans `KPIS.md`.
+Le site entier : 49 / 86 indexées (43 / 73 au 14/09), 0 clic, 1 impression sur 7 j au 18/10.
+
+**Ordre des tickets, du plus court vers l'objectif :**
+1. **T-006 (pari)** — lier les 12 fiches Noël depuis le pied de page, l'accueil et les fiches des autres thèmes.
+   PARI : pages Noël indexées 0 / 13 → 8 / 13 au 2026-11-20. Raison : Google a lu le sitemap le 22/10 mais ne vient
+   pas chercher ces fiches. Aucune page qu'il recrawle (accueil, `/creer`, `/guides`, légales : 20-25/10) ne les lie.
+2. **T-005 — GELÉ le 2026-10-25.** Aucun pari ne tient : publiées au 05/11, ces fiches entreraient en index après le
+   20/11, et les 12 premières sont à 0 / 13. Rouvert seulement si les pages Noël atteignent 8 / 13.
+3. **T-003 (filigrane) — reste derrière tout.** Ne sert aucun chiffre tant que Stripe est fermé (pm-finance le
+   déconseille aussi).
+
+**Gestes hors code, plus courts encore que T-006, qui ne sont pas des tickets** (voir « À trancher par le conseil ») :
+demander l'indexation des 13 URL Noël dans la console (environ 10 min, l'API ne sait pas le faire) ; relancer les
+15 fiches dinosaures en « Erreur liée à des redirections » ; Pinterest à la main.
+
+**Constat neuf : 15 fiches dinosaures sur 22 sont en « Erreur liée à des redirections ».** Google les a crawlées du
+15 au 21/09, pendant la boucle de redirection corrigée le 22/09, et n'est pas revenu. Elles ne demandent aucun code :
+elles répondaient en boucle, plus maintenant. C'est un candidat à la chute des impressions (33 sur 7 j au 14/09, 1 au
+18/10), non prouvé. Rien à faire côté dev.
+
+## À trancher par le conseil (2026-10-25)
+
+1. **Retient-on la cible « 8 / 13 pages Noël indexées au 2026-11-20 » ?** Et la règle de gel de pm-finance : au 20/11,
+   0 / 13 ⇒ plus aucun ticket cette saison ; au 15/12, sous 10 clics/semaine ⇒ gel jusqu'à l'été 2027.
+2. **Geste 🔑 de Romain dans la Search Console, environ 15 min, avant le 2026-10-28** : « Demander une indexation »
+   pour `/coloriages/noel` et ses 12 fiches ; « Valider la correction » sur le motif « Erreur liée à des
+   redirections » (15 fiches dinosaures). C'est le levier le plus court vers l'objectif, et il ne coûte aucun ticket.
+3. **Pinterest à la main : troisième proposition sans suite** (12/09, 17/09, et pm-market aujourd'hui). C'est un problème de
+   dispositif : le moteur ne prend que du code. Pari de pm-market : si Romain épingle les 12 fiches Noël et 10 autres
+   entre le 27/10 et le 05/11, alors les visites Umami venues de Pinterest passent de 0 à au moins 30 sur 28 j au
+   2026-11-25 (confiance ~30 %). Abandon si moins de 10 au 20/11. **On le fait, ou on l'abandonne pour de bon ?**
+4. **Données structurées qui promettent une vente impossible** (relevé par pm-market, non vérifié en ligne) : la page
+   déclare 3 offres `InStock` alors que Stripe n'est pas configuré et qu'aucun achat n'aboutit. Faut-il un ticket
+   **obligation** pour retirer les offres jusqu'à la reprise de Stripe ?
+5. **Seuil de reprise de Stripe** (pm-finance) : 10 clics GSC par semaine deux semaines de suite, ou au moins 5 aperçus
+   humains par semaine. Retient-on ce seuil ? Coût du domaine à demander à Romain (absent de `couts.csv`).
+
 ## Horizons
 
 ### H0 — Paywall en production ; offre payante repoussée sans date (statut au 2026-09-14)
@@ -311,6 +352,13 @@ et lèvent un dénominateur faux.)*
   *(Oui ⇒ ce sera un chantier de la revue du 24/09, pas un ticket dev de celle-ci.)*
 
 ## Journal des revues
+
+### 2026-10-25 — objectif : pages Noël indexées, 0 / 13
+- **Chiffre objectif : 0 / 13 pages Noël indexées** (URL Inspection, deux passages), cible proposée **8 / 13 au 20/11**. Site : 49 / 86 indexées, 0 clic, 1 impression sur 7 j au 18/10. Sitemap lu par Google le 22/10 (86 URL) : les fiches Noël sont soumises, pas visitées.
+- **T-002 et T-004 en prod** (relus en `done/`, rien à contester ; réserve T-004 : le hub `/coloriages` garde l'aperçu générique). **T-006 écrit (pari) : maillage Noël depuis les pages recrawlées.** **T-005 gelé** (pas de pari tenable avant le 20/11 ; pm-seo et pm-finance d'accord).
+- **Constat neuf : 15 fiches dinosaures en « Erreur liée à des redirections »**, crawlées pendant la boucle du 15 au 21/09, jamais revues. Geste console, pas de code.
+- **Pinterest proposé pour la troisième fois sans suite : problème de dispositif**, envoyé au conseil avec les gestes console de Romain.
+- Non vérifié : en ligne (défi Cloudflare depuis le poste) ; données structurées `InStock` (lecture de pm-market) ; cause de la chute des impressions. `retours-romain.md` : rien de neuf pour ce site depuis le 14/10 (« les dessins de noel sont en ligne »), marqueur non posé (hors périmètre de cette session).
 
 ### 2026-09-17 — premier export frais : +19 pages indexées, et c'est une file dormante, pas une pente
 - **Chiffre qui compte : 43 indexées / 73 au sitemap** (Coverage du 14/09, contre 24 dix jours plus tôt). Le +19 se décompose exactement — Crawled 7→1 (+6), Discovered 42→29 (+13) — **à corpus constant** (76 connues aux deux relevés, aucune page publiée depuis le 28/08) et **avant toute MEP** : Google a vidé un tiers d'une file dormante, le dispositif n'y est pour rien. **Série plate à 43 du 09 au 14/09 : un palier, pas une dynamique acquise.** Cible 60 au 15/11 : **à surveiller** (−17, 72 % du chemin), point de contrôle au 30/09 — encore 43 ⇒ décroché.

@@ -8,6 +8,10 @@
 | Créé le | 2026-10-15 par le PM, sur demande de Romain (« oui écris A et B ») |
 | Estimation | < 1 jour de dev, plus le temps de génération et de relecture de Romain |
 
+> **GELÉ le 2026-10-25 par pm-lead — ne pas prendre.** Aucun pari ne tient : publiées au 05/11, ces fiches
+> entreraient en index après le 20/11 au mieux, et les 12 premières fiches Noël sont encore à 0 / 13 indexées.
+> T-006 passe devant. Rouvert seulement si les pages Noël indexées atteignent 8 / 13 (voir ROADMAP).
+
 ## Pourquoi
 
 Les 12 sujets Noël de T-002 visent des requêtes courtes (« coloriage sapin de Noël », « coloriage Père Noël »)
