@@ -29,14 +29,30 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const dessin = await getColoriage(slug);
   const image =
     dessin?.statut === "publie"
-      ? [absoluteUrl(`/coloriages/image/${nomFichierImage(slug, dessin.mime)}`)]
+      ? [
+          {
+            url: absoluteUrl(`/coloriages/image/${nomFichierImage(slug, dessin.mime)}`),
+            width: dessin.largeur,
+            height: dessin.hauteur,
+            alt: `${sujet.titre} — dessin au trait à colorier`,
+          },
+        ]
       : undefined;
 
   return {
     title: sujet.titre,
     description: sujet.intro,
     alternates: { canonical: `/coloriages/${themeSlug}/${slug}` },
-    openGraph: { title: sujet.titre, description: sujet.intro, images: image },
+    // Remplace l'openGraph du layout racine au lieu de s'y fondre : ce qu'il
+    // doit en garder est répété ici.
+    openGraph: {
+      title: sujet.titre,
+      description: sujet.intro,
+      images: image,
+      siteName: SITE_NAME,
+      locale: "fr_FR",
+      type: "website",
+    },
     twitter: {
       card: "summary_large_image",
       title: sujet.titre,

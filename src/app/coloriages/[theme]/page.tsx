@@ -26,16 +26,23 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   // Partagée, la page montre un de ses propres dessins plutôt que l'avant/après
   // générique du site : le premier sujet publié, dans l'ordre éditorial.
   const publies = new Map(
-    (await listerPublies(theme.slug)).map((dessin) => [dessin.slug, dessin.mime]),
+    (await listerPublies(theme.slug)).map((dessin) => [dessin.slug, dessin]),
   );
   const vitrine = theme.sujets.find((sujet) => publies.has(sujet.slug));
-  const images = vitrine
-    ? [
-        absoluteUrl(
-          `/coloriages/image/${nomFichierImage(vitrine.slug, publies.get(vitrine.slug)!)}`,
-        ),
-      ]
-    : undefined;
+  const dessin = vitrine && publies.get(vitrine.slug)!;
+  const images =
+    vitrine && dessin
+      ? [
+          {
+            url: absoluteUrl(
+              `/coloriages/image/${nomFichierImage(vitrine.slug, dessin.mime)}`,
+            ),
+            width: dessin.largeur,
+            height: dessin.hauteur,
+            alt: `${vitrine.titre} — dessin au trait à colorier`,
+          },
+        ]
+      : undefined;
 
   return {
     title: theme.titre,
