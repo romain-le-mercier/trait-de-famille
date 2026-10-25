@@ -198,9 +198,12 @@ export interface FicheNoel {
  * posés hors du thème (accueil, fiches des autres thèmes). Lues en base : un
  * dessin dépublié ne doit pas devenir un lien mort.
  *
- * Une base qui ne répond pas rend une liste vide plutôt qu'une erreur : ces
- * liens ne valent pas une page d'accueil en 500.
+ * Une base qui ne répond pas rend la dernière liste lue (vide avant la
+ * première lecture) plutôt qu'une erreur : ces liens ne valent pas une page
+ * d'accueil en 500, et Google ne doit pas les perdre le temps d'une coupure.
  */
+let dernieresFichesNoel: FicheNoel[] = [];
+
 export async function listerFichesNoel(): Promise<FicheNoel[]> {
   const theme = getTheme("noel");
   if (!theme) return [];
@@ -211,9 +214,9 @@ export async function listerFichesNoel(): Promise<FicheNoel[]> {
     );
   } catch (error) {
     console.error("Fiches Noël illisibles en base :", error);
-    return [];
+    return dernieresFichesNoel;
   }
-  return theme.sujets
+  dernieresFichesNoel = theme.sujets
     .filter((sujet) => publies.has(sujet.slug))
     .map((sujet) => ({
       slug: sujet.slug,
@@ -221,4 +224,5 @@ export async function listerFichesNoel(): Promise<FicheNoel[]> {
       href: `/coloriages/${theme.slug}/${sujet.slug}`,
       fichier: nomFichierImage(sujet.slug, publies.get(sujet.slug)!),
     }));
+  return dernieresFichesNoel;
 }
