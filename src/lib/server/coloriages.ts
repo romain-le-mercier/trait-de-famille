@@ -204,14 +204,31 @@ export interface FicheNoel {
  */
 let dernieresFichesNoel: FicheNoel[] = [];
 
+/** Au-delà, l'accueil n'attend plus la base : il sert la dernière liste lue. */
+const DELAI_FICHES_NOEL_MS = 1500;
+
 export async function listerFichesNoel(): Promise<FicheNoel[]> {
   const theme = getTheme("noel");
   if (!theme) return [];
   let publies: Map<string, string>;
   try {
-    publies = new Map(
-      (await listerPublies(theme.slug)).map((dessin) => [dessin.slug, dessin.mime]),
-    );
+    let minuteur: ReturnType<typeof setTimeout> | undefined;
+    const delai = new Promise<never>((_, refuser) => {
+      minuteur = setTimeout(
+        () => refuser(new Error(`pas de réponse en ${DELAI_FICHES_NOEL_MS} ms`)),
+        DELAI_FICHES_NOEL_MS,
+      );
+    });
+    try {
+      publies = new Map(
+        (await Promise.race([listerPublies(theme.slug), delai])).map((dessin) => [
+          dessin.slug,
+          dessin.mime,
+        ]),
+      );
+    } finally {
+      clearTimeout(minuteur);
+    }
   } catch (error) {
     console.error("Fiches Noël illisibles en base :", error);
     return dernieresFichesNoel;
