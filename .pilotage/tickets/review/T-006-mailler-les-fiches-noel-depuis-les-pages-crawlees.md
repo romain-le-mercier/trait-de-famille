@@ -97,4 +97,19 @@ corrigés, 3 mineurs notés, 0 hérité, 0 réfuté.
 
 ## Validation PM
 
-*(rempli au passage en done/ ou au renvoi en todo/)*
+**VALIDÉ** le 2026-10-25 par /valider (agent `valideur`). Le ticket reste en `review/` : le passage en `done/`, le
+merge, le push et la MEP reviennent au chef d'orchestre.
+
+Critères rejoués (build de prod de `ticket/T-006`, worktree et Postgres jetables, 70 sujets publiés) :
+- NON VÉRIFIABLE en prod (403 Cloudflare, branche non déployée). En local : `href="/coloriages/noel"` → `/` 2,
+  `/creer` 1, `/guides` 1, `/mentions-legales` 1 ; `href="/coloriages/noel/` sur `/` → 12.
+- NON VÉRIFIABLE en prod. En local : `/coloriages/animaux/chat` 6, `/coloriages/dinosaures/stegosaure` 6.
+- Atteint en local : sitemap 86 `<loc>` ; title de `/coloriages/noel` inchangé ; ni `sitemap.ts`, ni `themes.ts`, ni les
+  `generateMetadata` touchés ; `npx tsc --noEmit` sans erreur.
+- NON VÉRIFIABLE : journal de MEP et relevés `gsc-inspect` (J+14, 20/11), à venir (chef d'orchestre, PM).
+
+Périmètre respecté. Déviation déclarée et mineure : `/creer` n'a pas de pied de page, un lien a été ajouté sous le formulaire.
+
+Réserves du valideur :
+- L'accueil passe de statique à `force-dynamic` : une requête SQL par affichage. La lecture est bornée à 1,5 s, avec repli sur la dernière liste lue. Une base en panne avant la toute première lecture donne un accueil sans liste de liens. Le dev l'a déclaré.
+- Les critères de prod sont à rejouer à la MEP, à l'origine Coolify et non via le domaine public.
