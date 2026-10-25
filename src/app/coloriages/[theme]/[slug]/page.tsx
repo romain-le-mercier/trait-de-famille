@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ChevronRight, Printer } from "lucide-react";
 import { Badge, Card } from "@/components/ui/Card";
 import { EtSiCetaitToi } from "@/components/coloriages/EtSiCetaitToi";
+import { PartagerColoriage } from "@/components/coloriages/PartagerColoriage";
 import { TelechargerColoriage } from "@/components/coloriages/TelechargerColoriage";
 import {
   ageConseille,
@@ -36,6 +37,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     description: sujet.intro,
     alternates: { canonical: `/coloriages/${themeSlug}/${slug}` },
     openGraph: { title: sujet.titre, description: sujet.intro, images: image },
+    twitter: {
+      card: "summary_large_image",
+      title: sujet.titre,
+      description: sujet.intro,
+      images: image,
+    },
   };
 }
 
@@ -150,9 +157,19 @@ export default async function ColoriagePage({ params }: Params) {
 
           <div className="mt-6">
             <TelechargerColoriage
+              slug={slug}
               src={src}
               nomFichier={fichier.replace(/\.[a-z]+$/, "")}
               extension={fichier.replace(/^.*\./, "")}
+            />
+          </div>
+
+          <div className="mt-4">
+            <PartagerColoriage
+              slug={slug}
+              titre={sujet.titre}
+              url={absoluteUrl(`/coloriages/${theme.slug}/${slug}`)}
+              image={absoluteUrl(src)}
             />
           </div>
 

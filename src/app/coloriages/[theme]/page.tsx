@@ -9,9 +9,9 @@ import {
   ageConseille,
   getTheme,
   nomFichierImage,
-
 } from "@/lib/coloriages/themes";
 import { listerPublies } from "@/lib/server/coloriages";
+import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +22,41 @@ interface Params {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const theme = getTheme((await params).theme);
   if (!theme) return {};
+
+  // Partagée, la page montre un de ses propres dessins plutôt que l'avant/après
+  // générique du site : le premier sujet publié, dans l'ordre éditorial.
+  const publies = new Map(
+    (await listerPublies(theme.slug)).map((dessin) => [dessin.slug, dessin.mime]),
+  );
+  const vitrine = theme.sujets.find((sujet) => publies.has(sujet.slug));
+  const images = vitrine
+    ? [
+        absoluteUrl(
+          `/coloriages/image/${nomFichierImage(vitrine.slug, publies.get(vitrine.slug)!)}`,
+        ),
+      ]
+    : undefined;
+
   return {
     title: theme.titre,
     description: theme.description,
     alternates: { canonical: `/coloriages/${theme.slug}` },
+    // Ces deux blocs remplacent ceux du layout racine au lieu de s'y fondre :
+    // ce qu'ils doivent garder de lui est donc répété ici.
+    openGraph: {
+      title: theme.titre,
+      description: theme.description,
+      images,
+      siteName: SITE_NAME,
+      locale: "fr_FR",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: theme.titre,
+      description: theme.description,
+      images,
+    },
   };
 }
 
@@ -55,6 +86,7 @@ export default async function ThemePage({ params }: Params) {
       </nav>
 
       <SectionTitle
+        as="h1"
         eyebrow="Gratuit"
         title={theme.titre}
         subtitle={theme.description}

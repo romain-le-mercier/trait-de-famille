@@ -10,7 +10,8 @@
  *    statistique n'est pas partie.
  * 2. **Rien de personnel ne sort d'ici.** Pas de nom de fichier, pas
  *    d'identifiant de dessin, pas d'adresse e-mail — seulement des libellés
- *    et des réglages choisis dans l'interface.
+ *    et des réglages choisis dans l'interface. Le slug d'un coloriage de la
+ *    bibliothèque n'en est pas un : c'est une page publique, la même pour tous.
  */
 
 type Evenement =
@@ -27,7 +28,11 @@ type Evenement =
   /** Paiement confirmé au retour de Stripe. */
   | "paiement-reussi"
   /** Un crédit a été dépensé : le coloriage sans filigrane est livré. */
-  | "coloriage-debloque";
+  | "coloriage-debloque"
+  /** Bibliothèque : un coloriage gratuit téléchargé (`format`, `slug`). */
+  | "coloriage-telecharge"
+  /** Bibliothèque : un bouton de partage cliqué (`canal`, `slug`). */
+  | "coloriage-partage";
 
 type Donnees = Record<string, string | number | boolean>;
 

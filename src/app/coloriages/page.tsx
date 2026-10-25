@@ -39,6 +39,7 @@ export default async function ColoriagesPage() {
   return (
     <div className="mx-auto max-w-5xl">
       <SectionTitle
+        as="h1"
         eyebrow="Gratuit"
         title="Des coloriages à imprimer, tout de suite."
         subtitle="Contours nets, zones fermées, format A4. À télécharger en PDF ou en PNG, sans compte et sans rien payer."

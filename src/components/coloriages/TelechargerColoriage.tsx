@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Download, FileImage } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { suivre } from "@/lib/analytics";
 import { downloadBlob, loadBitmap } from "@/lib/image";
 import { buildColoringPdf } from "@/lib/pdf";
 
@@ -14,10 +15,13 @@ import { buildColoringPdf } from "@/lib/pdf";
  * marges. Rien à générer ni à stocker côté serveur.
  */
 export function TelechargerColoriage({
+  slug,
   src,
   nomFichier,
   extension,
 }: {
+  /** Pour la mesure : quel coloriage de la bibliothèque est téléchargé. */
+  slug: string;
   src: string;
   nomFichier: string;
   /** Celle du fichier réellement stocké : le modèle décide du format. */
@@ -27,6 +31,11 @@ export function TelechargerColoriage({
   const [erreur, setErreur] = useState<string | null>(null);
 
   const telecharger = async (format: "pdf" | "image") => {
+    // Compté au clic, pas à la réussite : c'est l'intention qu'on mesure.
+    suivre("coloriage-telecharge", {
+      format: format === "pdf" ? "pdf" : extension,
+      slug,
+    });
     setEnCours(format);
     setErreur(null);
     try {

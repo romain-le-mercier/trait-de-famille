@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Eye, Palette, Printer, Sparkles, WalletMinimal } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
 import { Scene } from "@/components/illustrations/Scene";
@@ -82,6 +83,16 @@ export function Hero() {
               Voir des exemples
             </a>
           </div>
+
+          <p className="mt-6 text-base font-semibold">
+            🎄{" "}
+            <Link
+              href="/coloriages/noel"
+              className="text-grape underline decoration-2 underline-offset-4 hover:text-grape-dark"
+            >
+              Coloriages de Noël gratuits à imprimer
+            </Link>
+          </p>
 
           <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-muted">
             {REASSURANCES.map(({ icon: Icon, label }) => (

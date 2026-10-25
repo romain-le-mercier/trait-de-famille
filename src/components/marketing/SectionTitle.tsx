@@ -7,12 +7,15 @@ export function SectionTitle({
   subtitle,
   className,
   align = "center",
+  as: Heading = "h2",
 }: {
   eyebrow?: string;
   title: ReactNode;
   subtitle?: ReactNode;
   className?: string;
   align?: "center" | "left";
+  /** `h1` quand le titre est celui de la page (bibliothèque, thèmes). */
+  as?: "h1" | "h2";
 }) {
   return (
     <header
@@ -27,7 +30,7 @@ export function SectionTitle({
           {eyebrow}
         </p>
       )}
-      <h2 className="font-display text-3xl font-bold sm:text-4xl">{title}</h2>
+      <Heading className="font-display text-3xl font-bold sm:text-4xl">{title}</Heading>
       {subtitle && <p className="mt-3 text-lg text-muted">{subtitle}</p>}
     </header>
   );
