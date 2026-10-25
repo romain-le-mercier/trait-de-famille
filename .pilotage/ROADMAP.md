@@ -44,7 +44,13 @@ demander l'indexation des 13 URL Noël dans la console (environ 10 min, l'API ne
 elles répondaient en boucle, plus maintenant. C'est un candidat à la chute des impressions (33 sur 7 j au 14/09, 1 au
 18/10), non prouvé. Rien à faire côté dev.
 
+## Décidé par le conseil
+
+- 2026-10-25 — D-007 : T-006 confirmé en tête de file. Cible retenue : 8/13 pages Noël indexées au 2026-11-20 ; gel : 0/13 au 20/11 ⇒ plus aucun ticket cette saison ; < 10 clics/semaine au 15/12 ⇒ gel jusqu'à l'été 2027. T-003 et T-005 hors file. Révision au 2026-11-20.
+
 ## À trancher par le conseil (2026-10-25)
+
+> Question 1 tranchée le 2026-10-25 par D-007 ; 2 est déjà une carte 🔑 dans a-faire-romain.md ; 3, 4 (offres `InStock`, à vérifier en ligne avant tout ticket) et 5 restent ouvertes.
 
 1. **Retient-on la cible « 8 / 13 pages Noël indexées au 2026-11-20 » ?** Et la règle de gel de pm-finance : au 20/11,
    0 / 13 ⇒ plus aucun ticket cette saison ; au 15/12, sous 10 clics/semaine ⇒ gel jusqu'à l'été 2027.

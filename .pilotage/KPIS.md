@@ -6,7 +6,7 @@ Sans cible retenue, aucun statut de trajectoire n'est posé.
 | KPI | Source | Baseline | Période baseline | Cible proposée | Cible retenue | Échéance | Fréquence |
 |---|---|---|---|---|---|---|---|
 | Ventes Stripe 28 j (nb achats, € encaissés) — **KPI nord** | à créer : page `/admin/ventes` (agrégats Postgres `purchases`), relevée par Romain dans `retours-romain.md` | 0 / 0 € (aucune vente connue, aucune source) | au 2026-09-12 | 10 achats entre le 01/11 et le 15/12 | **10 achats — retenue par Romain le 2026-09-12, SUSPENDUE le 2026-09-14** | 2026-11-01 → 2026-12-15 (**inatteignable par construction, voir note**) | Hebdo à partir du 01/11 |
-| **Pages Noël indexées (13 URL) — chiffre objectif depuis le 2026-10-25** | `gsc-inspect.js` (API URL Inspection), verdict PASS | 0 / 13 | au 2026-10-25 | **8 / 13** | à retenir par le conseil | 2026-11-20 | J+14 de T-006, puis le 20/11 |
+| **Pages Noël indexées (13 URL) — chiffre objectif depuis le 2026-10-25** | `gsc-inspect.js` (API URL Inspection), verdict PASS | 0 / 13 | au 2026-10-25 | **8 / 13** | **8 / 13 — retenue par le conseil, D-007 du 2026-10-25** | 2026-11-20 | J+14 de T-006, puis le 20/11 |
 | Pages indexées | GSC Indexation > Pages | 24 / 76 connues (sitemap : 73 URL vérifiées en ligne le 2026-09-12) | relevé du 2026-09-04 | 60 / 90 (dont thème Noël) | **60 / 90 — retenue par Romain le 2026-09-12** ; **dénominateur corrigé le 2026-09-17, voir note** | 2026-11-15 | Hebdo |
 | Clics organiques 28 j | GSC Performance | 0 | 28 j au 2026-09-06 | | | | Hebdo |
 | Position moyenne 28 j | GSC Performance | 18.9 (fenêtre de 14 j, 26 requêtes — **non comparable**, voir note du 2026-09-17) | idem | | | | Hebdo |
