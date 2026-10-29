@@ -24,6 +24,16 @@ export interface Sujet {
   intro: string;
   /** Pilote le niveau de détail demandé au modèle et l'âge annoncé. */
   difficulte: DetailLevel;
+  /**
+   * Ce que montre le dessin, écrit d'après l'image publiée et non d'après
+   * `nom` : le modèle ne dessine pas toujours ce qu'on lui demande, et une
+   * description fausse se voit au premier coup d'œil.
+   */
+  dessin?: string;
+  /** Zones, âge annoncé et pourquoi, idées de couleurs. */
+  colorier?: string;
+  /** Un usage du dessin imprimé, pour Noël. */
+  ideeNoel?: string;
 }
 
 export interface Theme {
@@ -532,6 +542,12 @@ const NOEL: Sujet[] = [
     intro:
       "Un sapin décoré de boules et de guirlandes, l'étoile au sommet et les paquets à son pied. Chaque boule est un petit rond fermé : on peut n'en colorier aucune pareille à sa voisine.",
     difficulte: "enfant",
+    dessin:
+      "L'étoile du sommet est taillée en facettes, comme un cristal. Une guirlande lumineuse fait le tour du sapin en plusieurs rangs d'ampoules ; entre elles pendent des boules à étoiles, à spirales ou à zigzags, des bonbons emballés et des sucres d'orge. Au pied, le tronc dépasse entre des paquets à rayures, à pois ou à étoiles, dont certains portent une étiquette.",
+    colorier:
+      "Le feuillage est la plus grande zone : un vert franc suffit, ou deux verts pour séparer les étages de branches. Le travail est dans les détails : chaque ampoule, chaque boule, chaque bonbon est une petite zone fermée qui demande un feutre fin. C'est pour cela qu'il est annoncé dès cinq ans. Une idée simple : du jaune pour toutes les ampoules, et une couleur différente pour chaque boule.",
+    ideeNoel:
+      "Les étiquettes des paquets sont vides : on peut y écrire les prénoms de la famille avant de colorier. Affiché sur la porte de la chambre début décembre, le sapin peut aussi se remplir petit à petit, une boule coloriée chaque soir, comme un calendrier de l'Avent fait main.",
   },
   {
     slug: "pere-noel",
@@ -540,6 +556,12 @@ const NOEL: Sujet[] = [
     intro:
       "Le Père Noël de face, la barbe jusqu'à la ceinture et la hotte débordant de jouets sur l'épaule. Le manteau se remplit en deux coups de feutre rouge ; la barbe, elle, se laisse blanche.",
     difficulte: "tout-petit",
+    dessin:
+      "Le Père Noël se tient debout, souriant, sur une simple ligne de sol. Sa barbe frisée lui couvre la poitrine, son bonnet se termine par un gros pompon, et son manteau est bordé de fourrure aux manches, en bas et sur le devant. Il porte des moufles, des bottes, et sur l'épaule un sac d'où dépassent un ourson, un camion et des paquets.",
+    colorier:
+      "Les traits sont épais et les zones grandes : manteau, pantalon, bottes, sac. C'est ce qui le rend accessible dès trois ans, avec des feutres larges ou des craies grasses. Rouge pour le manteau et le bonnet, noir pour la ceinture et les bottes, jaune pour la boucle ; la barbe et la fourrure restent blanches. Les jouets du sac sont les seules petites zones, à colorier avec un grand.",
+    ideeNoel:
+      "Découpé en suivant son contour, il se colle sur la face d'un carton plié en deux : l'intérieur reste libre pour un mot aux grands-parents ou pour la liste de cadeaux adressée au Père Noël.",
   },
   {
     slug: "renne-de-noel",
@@ -548,6 +570,12 @@ const NOEL: Sujet[] = [
     intro:
       "Un renne de profil, les bois ramifiés au-dessus de la tête et un grelot au collier. Les bois se divisent en branches fines : c'est la partie qui demande une main plus sûre.",
     difficulte: "enfant",
+    dessin:
+      "Le renne est debout, de profil, la tête tournée vers la gauche et le museau souriant. Ses bois s'ouvrent largement au-dessus de lui en branches recourbées. Un collier lui entoure le cou, avec un grelot pendu devant le poitrail, où le poil forme une touffe. Il se tient sur un peu d'herbe, la queue relevée.",
+    colorier:
+      "Le corps est une grande zone d'un seul tenant : un brun clair, plus foncé sur le dos, suffit. Les bois sont la partie délicate : longs et étroits, ils se divisent en pointes qu'il faut suivre sans déborder, d'où l'âge annoncé, dès cinq ans. Beige ou brun pour les bois, rouge pour le collier, jaune pour le grelot, vert pour l'herbe. Et rien n'interdit de lui faire le nez rouge.",
+    ideeNoel:
+      "Plusieurs rennes coloriés chacun à sa façon, découpés et fixés sur une ficelle, font une guirlande pour la chambre ou la fenêtre. Au repas de Noël, une feuille posée sous l'assiette de chaque enfant devient un set de table à colorier en attendant le dessert.",
   },
   {
     slug: "bonhomme-de-neige",
@@ -556,6 +584,12 @@ const NOEL: Sujet[] = [
     intro:
       "Un bonhomme de neige en trois boules, avec son écharpe, son chapeau et sa carotte en guise de nez. Presque tout reste blanc : l'enfant ne colorie que les accessoires, et le dessin est fini en dix minutes.",
     difficulte: "tout-petit",
+    dessin:
+      "Le bonhomme est fait de trois boules posées dans la neige, la plus grosse en bas. Il porte un chapeau haut-de-forme cerclé d'un ruban, une écharpe dont un pan retombe sur le ventre, et deux gros boutons. Ses yeux et sa bouche sont des ronds de charbon, son nez une carotte striée, et ses bras deux branches levées, comme s'il saluait.",
+    colorier:
+      "Les contours sont épais et très espacés : il n'y a presque rien à manquer, d'où l'âge annoncé, dès trois ans. Noir ou bleu nuit pour le chapeau, une couleur vive pour l'écharpe et le ruban, orange pour la carotte, marron pour les bras. Les boules peuvent rester blanches ou prendre une ombre bleu pâle sur les bords ; le fond vide se prête à un ciel bleu semé de flocons.",
+    ideeNoel:
+      "Colorié puis découpé, il se colle sur une vitre et se voit depuis la rue. Les plus petits peuvent aussi coller du coton sur les boules au lieu de les colorier : une neige qu'on touche.",
   },
   {
     slug: "cadeau-de-noel",
@@ -564,6 +598,12 @@ const NOEL: Sujet[] = [
     intro:
       "Trois paquets empilés, du plus grand au plus petit, chacun avec son ruban et son nœud. Le papier est laissé à motifs simples : rayures, pois, étoiles — une couleur par paquet suffit à les distinguer.",
     difficulte: "tout-petit",
+    dessin:
+      "Trois paquets empilés, du plus large en bas au plus petit en haut. Celui du bas est à rayures, celui du milieu à pois, celui du haut à étoiles. Chacun est ceinturé d'un ruban qui fait la croix sur le couvercle, mais seul le paquet du sommet porte un nœud, large, avec ses deux pans.",
+    colorier:
+      "Chaque paquet se lit tout seul : une couleur pour le papier, une autre pour le ruban, et le motif qui reste blanc ou prend une troisième teinte. Les pois et les étoiles sont assez grands pour être coloriés un à un par une petite main, d'où l'âge annoncé, dès trois ans ; les rayures du bas demandent un peu plus de soin. Pour un empilement qui se lit bien, alterner une couleur chaude et une froide : rouge, vert, rouge.",
+    ideeNoel:
+      "Le dessin se prête à une liste : on écrit sur chaque paquet le nom d'un cadeau rêvé, et la feuille part avec la lettre au Père Noël. Coloriée, elle sert aussi de papier d'emballage pour une petite boîte.",
   },
   {
     slug: "boule-de-noel",
@@ -572,6 +612,12 @@ const NOEL: Sujet[] = [
     intro:
       "Une grosse boule suspendue à une branche de sapin, couverte de bandes, de losanges et de flocons. Chaque bande peut prendre sa couleur, et les flocons restent blancs pour trancher.",
     difficulte: "ado",
+    dessin:
+      "La boule est suspendue par un fil à une branche de sapin dont les aiguilles sont dessinées une à une, bourgeons compris. Son attache est striée en biais. Elle est découpée en bandes : des losanges en haut, des flocons et des points, une large frise de losanges ornés de feuillages, de nouveau des flocons, puis des arcs ; elle se termine en pointe par une petite clochette.",
+    colorier:
+      "C'est un coloriage de motifs, proche d'un mandala : beaucoup de petites zones fermées et régulières, qui se répètent d'une bande à l'autre. D'où l'âge annoncé, dès huit ans, avec des feutres fins ou des crayons bien taillés. Une méthode qui marche : choisir trois couleurs et les faire tourner d'une bande à l'autre, garder les flocons blancs, finir par la branche en deux verts. Les adultes s'y retrouvent aussi.",
+    ideeNoel:
+      "Coloriée et découpée selon son contour, la boule se suspend au sapin ou à une fenêtre par un fil passé dans l'anneau. Collée sur la face d'un carton plié, elle fait une carte de vœux.",
   },
   {
     slug: "bonnet-de-noel",
@@ -580,6 +626,12 @@ const NOEL: Sujet[] = [
     intro:
       "Un bonnet à pompon, la pointe qui retombe et la bordure en fourrure. Deux grandes zones et une petite : c'est le plus simple de la série, fait pour les plus jeunes.",
     difficulte: "tout-petit",
+    dessin:
+      "Un bonnet seul, sans personnage : une grande pointe molle qui retombe sur le côté, une bordure de fourrure toute en bosses et un gros pompon au bout. Deux traits suggèrent le pli du tissu. Il n'y a ni fond ni décor.",
+    colorier:
+      "Trois zones et des contours épais : la pointe, la bordure, le pompon. C'est le dessin le plus simple de la série, fait pour une première prise de feutre, dès trois ans. Rouge pour le bonnet, et la fourrure laissée blanche ou passée en gris très clair ; ceux qui aiment changer peuvent tenter un bonnet vert, ou à rayures.",
+    ideeNoel:
+      "Découpé selon son contour, le bonnet coiffe qui on veut : une photo imprimée, un dessin, un portrait de famille. Collé sur une bande de papier ajustée au tour de tête, il devient un chapeau de lutin pour le soir du réveillon.",
   },
   {
     slug: "traineau-du-pere-noel",
@@ -588,6 +640,12 @@ const NOEL: Sujet[] = [
     intro:
       "Le traîneau chargé de cadeaux, les patins recourbés glissant sur la neige. Les volutes de la caisse et les paquets empilés font un dessin riche, à colorier en plusieurs séances.",
     difficulte: "enfant",
+    dessin:
+      "Le traîneau glisse de nuit dans un paysage de neige : un croissant de lune, des étoiles, des sapins enneigés sur les collines. Sa caisse en bois est couverte de volutes et d'une branche de houx ; une lanterne pend à l'avant, une petite boule de Noël sur le côté, et deux coussins attendent sur la banquette. Derrière s'entassent des paquets à étoiles, à rayures ou à pois, une boîte ronde et un sac ficelé, plein lui aussi. Les patins s'enroulent en spirales.",
+    colorier:
+      "Le dessin est dense : la caisse et les patins alternent grandes surfaces et volutes serrées, et chaque paquet a son ruban et son motif. Annoncé dès cinq ans, il convient à un enfant patient, ou à colorier à plusieurs, chacun sa zone. Rouge et or pour le traîneau, une couleur par paquet ; le ciel peut se foncer en bleu nuit en laissant la lune et les étoiles blanches.",
+    ideeNoel:
+      "Le dessin raconte la nuit du 24 : on peut le colorier pendant l'Avent, un morceau par jour, et l'afficher le soir du réveillon. Imprimé une fois par enfant, il fait aussi un set de table pour patienter pendant le repas.",
   },
   {
     slug: "lutin-de-noel",
@@ -596,6 +654,12 @@ const NOEL: Sujet[] = [
     intro:
       "Un lutin aux oreilles pointues, le marteau à la main devant un cheval de bois. Sa tenue est découpée en petites pièces — col, ceinture, chaussons — qui appellent chacune leur couleur.",
     difficulte: "enfant",
+    dessin:
+      "Un lutin souriant, aux oreilles pointues, tient un marteau à côté d'un cheval à bascule. Son bonnet est rayé, bordé de zigzags, et finit par un grelot. Il porte un col à pointes, une veste boutonnée, une large ceinture à boucle, un collant rayé et des chaussons pointus ornés de grelots. Le cheval a une selle, un étrier, une bride, une crinière et une robe à pois.",
+    colorier:
+      "Le lutin est découpé en petites pièces (bonnet, col, veste, ceinture, collant, chaussons) qui appellent chacune leur couleur : c'est ce qui le place dès cinq ans. Le vert et le rouge font la tenue classique ; le collant rayé peut alterner deux couleurs, bande par bande. Le cheval se colorie à part, en bois clair ou en blanc à pois, avec une selle rouge.",
+    ideeNoel:
+      "Le lutin et son cheval à bascule ouvrent sur l'atelier du Père Noël : de quoi raconter, en coloriant, comment les jouets se fabriquent avant le 25. Colorié, il peut accueillir les visiteurs sur la porte d'entrée pendant tout décembre.",
   },
   {
     slug: "buche-de-noel",
@@ -604,6 +668,12 @@ const NOEL: Sujet[] = [
     intro:
       "Une bûche sur son plat, l'écorce striée à la fourchette et décorée de houx et de champignons en meringue. À colorier en chocolat, en marron glacé ou en framboise — selon celle qu'on mangera le 25.",
     difficulte: "enfant",
+    dessin:
+      "Une bûche roulée, vue de biais sur un plat ovale. Sa tranche montre la spirale du biscuit ; le dessus est strié comme une écorce, avec un nœud de bois. Elle est garnie de branches de houx aux baies rondes et de petits champignons en meringue. Le bord du plat est décoré de feuilles et de volutes.",
+    colorier:
+      "Les stries de l'écorce font de longues bandes étroites à suivre : c'est la partie qui demande de la précision, d'où l'âge annoncé, dès cinq ans. Le reste est plus large : la tranche, le plat, les feuilles de houx. Brun chocolat pour l'écorce, une teinte plus claire pour la crème de la spirale, vert pour le houx, rouge pour les baies, blanc ou beige pour les champignons. Le plat peut prendre une couleur vive pour faire ressortir le gâteau.",
+    ideeNoel:
+      "Coloriée aux couleurs de la vraie bûche, elle annonce le dessert : posée sur la table, avec le nom du gâteau écrit au dos, elle sert de menu. Elle peut aussi faire la carte d'invitation d'un goûter de Noël.",
   },
   {
     slug: "couronne-de-noel",
@@ -612,6 +682,12 @@ const NOEL: Sujet[] = [
     intro:
       "Une couronne de branches de sapin, garnie de pommes de pin, de baies de houx et d'un grand nœud. Les aiguilles sont dessinées une à une : c'est le coloriage le plus long de la série, pour les grands.",
     difficulte: "ado",
+    dessin:
+      "Une couronne de branches de sapin, ouverte au centre, sans bougies. Les aiguilles sont dessinées une à une sur tout le tour. Des pommes de pin aux écailles détaillées et des feuilles de houx avec leurs baies sont réparties dans les branches. En bas, un grand nœud laisse retomber deux longs rubans.",
+    colorier:
+      "C'est le dessin le plus fin de la série : d'innombrables traits d'aiguilles serrés, qui demandent des crayons bien taillés et du temps, d'où l'âge annoncé, dès huit ans. Les adultes y trouvent aussi leur compte. Deux ou trois verts, du plus sombre au plus clair, donnent du relief aux branches ; brun pour les pommes de pin, vert foncé pour le houx, rouge pour les baies et le nœud.",
+    ideeNoel:
+      "Coloriée puis découpée, la couronne se suspend à la porte de la chambre ou de l'entrée, comme une vraie. Le cercle vide du centre est fait pour un message : « Joyeux Noël », le nom de la famille, ou une photo collée derrière l'ouverture.",
   },
   {
     slug: "chaussette-de-noel",
@@ -620,6 +696,12 @@ const NOEL: Sujet[] = [
     intro:
       "Une chaussette pendue à la cheminée, d'où dépassent un sucre d'orge et un ourson. Le revers est assez large pour y écrire son prénom avant de la colorier.",
     difficulte: "tout-petit",
+    dessin:
+      "La chaussette pend devant une cheminée en briques. Son revers est large, uni et laissé vide. Le reste est découpé en bandes : des étoiles et des points, puis des points seuls, avec la pointe et le talon à part. Un ourson et un sucre d'orge dépassent par le haut.",
+    colorier:
+      "Les traits sont épais, les zones grandes et bien fermées : un enfant de trois ans s'y retrouve. Rouge et blanc pour la chaussette, en alternant les bandes ; marron pour l'ourson, rouge et blanc en spirale pour le sucre d'orge ; les briques en orange ou en rouge brique. Le revers reste blanc pour y écrire.",
+    ideeNoel:
+      "Le revers vide attend un prénom : une chaussette par enfant, accrochée au manteau de la cheminée ou à la porte de la chambre, et chacun reconnaît la sienne le matin du 25.",
   },
 ];
 

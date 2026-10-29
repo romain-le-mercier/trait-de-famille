@@ -108,6 +108,12 @@ export default async function ColoriagePage({ params }: Params) {
     })
     .filter((autre): autre is NonNullable<typeof autre> => autre !== null);
 
+  const sections = [
+    { titre: "Ce que montre le dessin", texte: sujet.dessin },
+    { titre: "Pour le colorier", texte: sujet.colorier },
+    { titre: "Une idée pour Noël", texte: sujet.ideeNoel },
+  ].filter((section): section is { titre: string; texte: string } => !!section.texte);
+
   const noel =
     theme.slug === "noel"
       ? []
@@ -227,6 +233,17 @@ export default async function ColoriagePage({ params }: Params) {
           </Card>
         </div>
       </div>
+
+      {sections.length > 0 && (
+        <section className="mt-14 grid gap-8 md:grid-cols-3">
+          {sections.map(({ titre, texte }) => (
+            <div key={titre}>
+              <h2 className="font-display text-xl font-bold">{titre}</h2>
+              <p className="mt-2 text-muted">{texte}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       {autres.length > 0 && (
         <section className="mt-14">
