@@ -559,7 +559,7 @@ const NOEL: Sujet[] = [
     dessin:
       "Le Père Noël se tient debout, souriant, sur une simple ligne de sol. Sa barbe frisée lui couvre la poitrine, son bonnet se termine par un gros pompon, et son manteau est bordé de fourrure aux manches, en bas et sur le devant. Il porte des moufles, des bottes, et sur l'épaule un sac d'où dépassent un ourson, un camion et des paquets.",
     colorier:
-      "Les traits sont épais et les zones grandes : manteau, pantalon, bottes, sac. C'est ce qui le rend accessible dès trois ans, avec des feutres larges ou des craies grasses. Rouge pour le manteau et le bonnet, noir pour la ceinture et les bottes, jaune pour la boucle ; la barbe et la fourrure restent blanches. Les jouets du sac sont les seules petites zones, à colorier avec un grand.",
+      "Les traits sont épais et les zones grandes : manteau, pantalon, bottes, sac. C'est ce qui le rend accessible dès trois ans, avec des feutres larges ou des craies grasses. Rouge pour le manteau et le bonnet, noir pour la ceinture et les bottes, jaune pour la boucle ; la barbe et la fourrure restent blanches. Le visage, la boucle et les jouets du sac sont les petites zones, à colorier avec un grand.",
     ideeNoel:
       "Découpé en suivant son contour, il se colle sur la face d'un carton plié en deux : l'intérieur reste libre pour un mot aux grands-parents ou pour la liste de cadeaux adressée au Père Noël.",
   },
@@ -571,9 +571,9 @@ const NOEL: Sujet[] = [
       "Un renne de profil, les bois ramifiés au-dessus de la tête et un grelot au collier. Les bois se divisent en branches fines : c'est la partie qui demande une main plus sûre.",
     difficulte: "enfant",
     dessin:
-      "Le renne est debout, de profil, la tête tournée vers la gauche et le museau souriant. Ses bois s'ouvrent largement au-dessus de lui en branches recourbées. Un collier lui entoure le cou, avec un grelot pendu devant le poitrail, où le poil forme une touffe. Il se tient sur un peu d'herbe, la queue relevée.",
+      "Le renne est debout, de profil, la tête tournée vers la gauche et le museau souriant. Ses bois s'ouvrent largement au-dessus de lui en branches recourbées. Un collier lui entoure le cou, avec un grelot pendu devant le poitrail, où le poil forme une touffe, et une sangle lui barre le flanc. Il se tient sur un peu d'herbe, la queue relevée.",
     colorier:
-      "Le corps est une grande zone d'un seul tenant : un brun clair, plus foncé sur le dos, suffit. Les bois sont la partie délicate : longs et étroits, ils se divisent en pointes qu'il faut suivre sans déborder, d'où l'âge annoncé, dès cinq ans. Beige ou brun pour les bois, rouge pour le collier, jaune pour le grelot, vert pour l'herbe. Et rien n'interdit de lui faire le nez rouge.",
+      "Le corps est une grande zone, coupée seulement par la sangle : un brun clair, plus foncé sur le dos, suffit. Les bois sont la partie délicate : longs et étroits, ils se divisent en pointes qu'il faut suivre sans déborder, d'où l'âge annoncé, dès cinq ans. Beige ou brun pour les bois, rouge pour le collier et la sangle, jaune pour le grelot, vert pour l'herbe. Et rien n'interdit de lui faire le nez rouge.",
     ideeNoel:
       "Plusieurs rennes coloriés chacun à sa façon, découpés et fixés sur une ficelle, font une guirlande pour la chambre ou la fenêtre. Au repas de Noël, une feuille posée sous l'assiette de chaque enfant devient un set de table à colorier en attendant le dessert.",
   },
@@ -643,9 +643,9 @@ const NOEL: Sujet[] = [
     dessin:
       "Le traîneau glisse de nuit dans un paysage de neige : un croissant de lune, des étoiles, des sapins enneigés sur les collines. Sa caisse en bois est couverte de volutes et d'une branche de houx ; une lanterne pend à l'avant, une petite boule de Noël sur le côté, et deux coussins attendent sur la banquette. Derrière s'entassent des paquets à étoiles, à rayures ou à pois, une boîte ronde et un sac ficelé, plein lui aussi. Les patins s'enroulent en spirales.",
     colorier:
-      "Le dessin est dense : la caisse et les patins alternent grandes surfaces et volutes serrées, et chaque paquet a son ruban et son motif. Annoncé dès cinq ans, il convient à un enfant patient, ou à colorier à plusieurs, chacun sa zone. Rouge et or pour le traîneau, une couleur par paquet ; le ciel peut se foncer en bleu nuit en laissant la lune et les étoiles blanches.",
+      "Le dessin est dense : la caisse et les patins alternent grandes surfaces et volutes serrées, et chaque paquet a son ruban et son motif. Annoncé dès cinq ans, il se colorie par morceaux, ou à plusieurs, chacun sa zone. Rouge et or pour le traîneau, une couleur par paquet ; le ciel peut se foncer en bleu nuit en laissant la lune et les étoiles blanches.",
     ideeNoel:
-      "Le dessin raconte la nuit du 24 : on peut le colorier pendant l'Avent, un morceau par jour, et l'afficher le soir du réveillon. Imprimé une fois par enfant, il fait aussi un set de table pour patienter pendant le repas.",
+      "Le dessin raconte la nuit de Noël : on peut le colorier pendant l'Avent, un morceau par jour, et l'afficher le soir du réveillon. Imprimé une fois par enfant, il fait aussi un set de table pour patienter pendant le repas.",
   },
   {
     slug: "lutin-de-noel",
@@ -659,7 +659,7 @@ const NOEL: Sujet[] = [
     colorier:
       "Le lutin est découpé en petites pièces (bonnet, col, veste, ceinture, collant, chaussons) qui appellent chacune leur couleur : c'est ce qui le place dès cinq ans. Le vert et le rouge font la tenue classique ; le collant rayé peut alterner deux couleurs, bande par bande. Le cheval se colorie à part, en bois clair ou en blanc à pois, avec une selle rouge.",
     ideeNoel:
-      "Le lutin et son cheval à bascule ouvrent sur l'atelier du Père Noël : de quoi raconter, en coloriant, comment les jouets se fabriquent avant le 25. Colorié, il peut accueillir les visiteurs sur la porte d'entrée pendant tout décembre.",
+      "Le lutin et son cheval à bascule ouvrent sur l'atelier du Père Noël : de quoi raconter, en coloriant, comment les jouets se fabriquent avant Noël. Colorié, il peut accueillir les visiteurs sur la porte d'entrée pendant tout décembre.",
   },
   {
     slug: "buche-de-noel",
@@ -669,9 +669,9 @@ const NOEL: Sujet[] = [
       "Une bûche sur son plat, l'écorce striée à la fourchette et décorée de houx et de champignons en meringue. À colorier en chocolat, en marron glacé ou en framboise — selon celle qu'on mangera le 25.",
     difficulte: "enfant",
     dessin:
-      "Une bûche roulée, vue de biais sur un plat ovale. Sa tranche montre la spirale du biscuit ; le dessus est strié comme une écorce, avec un nœud de bois. Elle est garnie de branches de houx aux baies rondes et de petits champignons en meringue. Le bord du plat est décoré de feuilles et de volutes.",
+      "Une bûche roulée, vue de biais sur un plat ovale. Sa tranche montre une spirale ; le dessus est strié comme une écorce, avec un nœud de bois. Elle est garnie de branches de houx aux baies rondes et de petits champignons. Le bord du plat est décoré de feuilles et de volutes.",
     colorier:
-      "Les stries de l'écorce font de longues bandes étroites à suivre : c'est la partie qui demande de la précision, d'où l'âge annoncé, dès cinq ans. Le reste est plus large : la tranche, le plat, les feuilles de houx. Brun chocolat pour l'écorce, une teinte plus claire pour la crème de la spirale, vert pour le houx, rouge pour les baies, blanc ou beige pour les champignons. Le plat peut prendre une couleur vive pour faire ressortir le gâteau.",
+      "Les stries de l'écorce font de longues bandes étroites à suivre : c'est la partie qui demande de la précision, d'où l'âge annoncé, dès cinq ans. Le reste est plus large : la tranche, le plat, les feuilles de houx. Brun chocolat pour l'écorce, une teinte plus claire pour la spirale de la tranche, vert pour le houx, rouge pour les baies, blanc ou beige pour les champignons. Le plat peut prendre une couleur vive pour faire ressortir le gâteau.",
     ideeNoel:
       "Coloriée aux couleurs de la vraie bûche, elle annonce le dessert : posée sur la table, avec le nom du gâteau écrit au dos, elle sert de menu. Elle peut aussi faire la carte d'invitation d'un goûter de Noël.",
   },
@@ -685,7 +685,7 @@ const NOEL: Sujet[] = [
     dessin:
       "Une couronne de branches de sapin, ouverte au centre, sans bougies. Les aiguilles sont dessinées une à une sur tout le tour. Des pommes de pin aux écailles détaillées et des feuilles de houx avec leurs baies sont réparties dans les branches. En bas, un grand nœud laisse retomber deux longs rubans.",
     colorier:
-      "C'est le dessin le plus fin de la série : d'innombrables traits d'aiguilles serrés, qui demandent des crayons bien taillés et du temps, d'où l'âge annoncé, dès huit ans. Les adultes y trouvent aussi leur compte. Deux ou trois verts, du plus sombre au plus clair, donnent du relief aux branches ; brun pour les pommes de pin, vert foncé pour le houx, rouge pour les baies et le nœud.",
+      "Les branches sont faites d'innombrables traits d'aiguilles serrés, qui demandent des crayons bien taillés et du temps, d'où l'âge annoncé, dès huit ans. Les adultes y trouvent aussi leur compte. Deux ou trois verts, du plus sombre au plus clair, donnent du relief aux branches ; brun pour les pommes de pin, vert foncé pour le houx, rouge pour les baies et le nœud.",
     ideeNoel:
       "Coloriée puis découpée, la couronne se suspend à la porte de la chambre ou de l'entrée, comme une vraie. Le cercle vide du centre est fait pour un message : « Joyeux Noël », le nom de la famille, ou une photo collée derrière l'ouverture.",
   },
@@ -701,7 +701,7 @@ const NOEL: Sujet[] = [
     colorier:
       "Les traits sont épais, les zones grandes et bien fermées : un enfant de trois ans s'y retrouve. Rouge et blanc pour la chaussette, en alternant les bandes ; marron pour l'ourson, rouge et blanc en spirale pour le sucre d'orge ; les briques en orange ou en rouge brique. Le revers reste blanc pour y écrire.",
     ideeNoel:
-      "Le revers vide attend un prénom : une chaussette par enfant, accrochée au manteau de la cheminée ou à la porte de la chambre, et chacun reconnaît la sienne le matin du 25.",
+      "Le revers vide attend un prénom : une chaussette par enfant, accrochée au manteau de la cheminée ou à la porte de la chambre, et chacun reconnaît la sienne le matin de Noël.",
   },
 ];
 
