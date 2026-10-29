@@ -107,3 +107,23 @@ Revue adversariale du 2026-10-29 (niveau léger, `reviewer-seo`, deux tours) : 5
 - Hérité : intros fausses de `cadeau-de-noel` (contradiction interne), `pere-noel`, `buche-de-noel` — hors périmètre (meta description figée).
 
 ## Validation PM
+
+**VALIDÉ** le 2026-10-29 par /valider (agent `valideur`), sur `ticket/T-007` @ `fc52a84` contre `main`.
+
+Critères rejoués :
+- 12 fiches avec les nouvelles sections, les autres thèmes inchangés : atteint, avec une limite. Rendu conditionnel dans `page.tsx`, 36 champs ajoutés (12 × 3), aucune ligne supprimée dans `themes.ts`. Le HTML identique à main n'a pas été rejoué.
+- Mots par fiche : atteint par recoupement. Environ 2067 mots ajoutés, soit environ 172 par fiche plus l'intro, environ 205, cohérent avec les 163 à 216 annoncés.
+- Textes consultables avec une relecture par fiche : atteint (diff de `themes.ts` et Retour dev).
+- `title`, meta description, canonical et JSON-LD inchangés : atteint, aucune métadonnée dans le diff.
+- Sitemap à 86 URL inchangé : atteint, aucun sujet ajouté.
+- Aucun chiffre ni prix dans les textes ajoutés : atteint.
+- `npx tsc --noEmit` : sans erreur.
+
+Périmètre respecté.
+
+Réserves du valideur, recopiées :
+- La description « d'après l'image » ne peut pas être contrôlée sans regarder les 12 images. Je me fie à la déclaration du dev.
+- `cadeau-de-noel` se contredit : l'intro dit « chacun avec son ruban et son nœud », alors que la section « Ce que montre le dessin » dit qu'un seul paquet porte un nœud. Le dev l'a remonté au PM, la meta description étant figée par le ticket.
+- Les critères restants sont à rejouer en ligne à la MEP, avant le 2026-11-05 : les trois `<h2>` sur `/coloriages/noel/sapin-de-noel` et le `<title>` inchangé. Je n'ai pas vu la page en production.
+
+Reste en `review/` : le passage en `done/`, le merge, le push et la MEP reviennent au chef d'orchestre.
