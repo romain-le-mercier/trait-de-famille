@@ -752,7 +752,7 @@ export const THEMES: Theme[] = [
     guide: {
       parAge: {
         "tout-petit":
-          "Traits épais, grandes zones bien fermées, peu de détails : ces dessins se colorient avec des feutres larges ou des craies grasses. Un enfant de trois ans en vient à bout presque seul ; le visage du Père Noël ou les jouets de son sac se font avec un grand.",
+          "Traits épais, grandes zones bien fermées, peu de détails : ces dessins se colorient avec des feutres larges ou des craies grasses. Un enfant de trois ans en vient à bout presque seul ; le visage du Père Noël ou les jouets de son sac se font avec l'aide d'un adulte.",
         enfant:
           "Ces dessins mêlent de grandes surfaces et des détails étroits : les ampoules du sapin, les bois du renne, les volutes du traîneau, les stries de la bûche. Il faut suivre un contour fin sans déborder, ce qui vient vers cinq ans, avec des feutres fins. Le traîneau se colorie volontiers en plusieurs fois.",
         ado:
