@@ -105,3 +105,20 @@ On nomme la variable, jamais sa valeur. Voir `_pilotage/templates/ticket.md`.
 5. La marge d'un centimètre a été vérifiée dans `pdf.ts` (`margin = 10` mm) avant d'être écrite.
 
 ## Validation PM
+
+**VALIDÉ** le 2026-10-30 par /valider (agent valideur), sur `c3527fc`. Reste en `review/` : passage en `done/`, merge, push et MEP reviennent au chef d'orchestre.
+
+**Critères rejoués**
+- Texte du hub Noël, mots avant/après, animaux et dinosaures sans texte : **non vérifiable en rendu**. Lu dans le diff : bloc conditionné par `theme.guide` (Noël seul), texte identique au « Texte après » du ticket, âges recomptés exacts (5 tout-petit, 5 enfant, 2 ado), libellés « Dès 3 / 5 / 8 ans » présents, marge 10 mm dans `src/lib/pdf.ts:18`. Le passage de 266 à 705 mots n'a pas été recompté.
+- JSON-LD `CollectionPage` > `ItemList` : **atteint par lecture**. Il est construit depuis le même tableau `sujets` que la grille, avec `numberOfItems = sujets.length`. Pas de `JSON.parse` fait sur un rendu.
+- Sitemap : **atteint par lecture**. `lastModified` vaut le max de `publieLe` par thème, ou `undefined` sans fiche datée. Les autres entrées sont intactes. Les 86 URL et la date du 2026-10-21 viennent de la base locale, non relancée.
+- `<title>`, meta description et canonical inchangés : **atteint** (`generateMetadata` n'est pas touché).
+- Texte avant/après et relecture joints au « Retour dev » : **atteint**.
+- `npx tsc --noEmit` : passe.
+- Périmètre respecté : trois fichiers de code, aucune exclusion du « Hors périmètre » touchée.
+
+**Réserves du valideur (telles quelles)**
+- Contradiction déclarée par le dev, à trancher : « Quoi » §3 demande un `lastmod` sur chaque hub, et le critère dit « aucun autre `<lastmod>` modifié ». Animaux et dinosaures gagnent donc un `<lastmod>` (absent → 2026-08-26 / 2026-08-28). Je suis « Quoi », qui est explicite, mais le retirer tient en une ligne.
+- Le `<lastmod>` de Noël (2026-10-21) ne suit pas la refonte du texte. Le dev l'a remonté au PM.
+- À vérifier en ligne après MEP, avant le 2026-11-05 : le JSON-LD, le texte et le `<lastmod>` de `/coloriages/noel`.
+- Mineur déclaré, non corrigé : les cartes de la grille sont des `<h2>` au même niveau que les sections ajoutées, et chaque fiche est liée deux fois.
