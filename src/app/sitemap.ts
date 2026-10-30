@@ -34,12 +34,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
+  // Un hub change à chaque publication d'une de ses fiches : sa date est
+  // celle de la plus récente, absente si aucune n'est datée.
+  const dernierePublication = new Map<string, number>();
+  for (const dessin of publies) {
+    if (!dessin.publieLe) continue;
+    const actuelle = dernierePublication.get(dessin.theme) ?? 0;
+    if (dessin.publieLe > actuelle) {
+      dernierePublication.set(dessin.theme, dessin.publieLe);
+    }
+  }
+
   const themes = THEMES.filter((theme) => themesPublies.has(theme.slug)).map(
-    (theme) => ({
-      url: `${SITE_URL}/coloriages/${theme.slug}`,
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    }),
+    (theme) => {
+      const derniere = dernierePublication.get(theme.slug);
+      return {
+        url: `${SITE_URL}/coloriages/${theme.slug}`,
+        lastModified: derniere ? new Date(derniere) : undefined,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+      };
+    },
   );
 
   const legal = [

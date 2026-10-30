@@ -31,3 +31,4 @@ Ce que personne d'autre ne peut relever : la date exacte de mise en production, 
 | 2026-10-30 | T-009 | pris | | | |
 | 2026-10-30 | T-009 | livré (fait) | 480e6c5 | meta description, car. avant → après : cadeau 199→156, pere-noel 185→159, buche 196→155 ; 9 autres fiches, title, canonical inchangés | Rejoué en local (build de prod branche et main, Postgres jetable). Non poussé, non déployé : MEP au chef d'orchestre après /valider. |
 | 2026-10-30 | T-009 | validé (valideur) | aaa3c8f | — | Réserves : champignons visibles (ticket faux sur ce point, « petits champignons » gardé) ; ImageObject.description du JSON-LD change avec l'intro (voulu) ; meta description des trois fiches à vérifier en ligne après MEP, avant le gel. Reste en review/, done/ et MEP au chef d'orchestre. |
+| 2026-10-30 | T-008 | pris | | | |

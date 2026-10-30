@@ -10,8 +10,11 @@ import {
   getTheme,
   nomFichierImage,
 } from "@/lib/coloriages/themes";
+import type { DetailLevel } from "@/lib/lineart/types";
 import { listerPublies } from "@/lib/server/coloriages";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
+
+const NIVEAUX: DetailLevel[] = ["tout-petit", "enfant", "ado"];
 
 export const dynamic = "force-dynamic";
 
@@ -82,8 +85,46 @@ export default async function ThemePage({ params }: Params) {
     }));
   if (sujets.length === 0) notFound();
 
+  const guide = theme.guide;
+  const parAge = guide
+    ? NIVEAUX.map((niveau) => ({
+        niveau,
+        texte: guide.parAge[niveau],
+        sujets: sujets.filter((sujet) => sujet.difficulte === niveau),
+      })).filter((groupe) => groupe.sujets.length > 0)
+    : [];
+
+  // Même liste que la grille : Google lit dans le JSON-LD exactement les
+  // dessins que la page montre. Il va avec le texte du hub : les thèmes sans
+  // guide restent tels quels tant que le gabarit n'a pas fait ses preuves.
+  const jsonLd = guide && {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: theme.titre,
+    description: theme.description,
+    url: absoluteUrl(`/coloriages/${theme.slug}`),
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: sujets.length,
+      itemListElement: sujets.map((sujet, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: sujet.titre,
+        url: absoluteUrl(`/coloriages/${theme.slug}/${sujet.slug}`),
+        image: absoluteUrl(`/coloriages/image/${sujet.fichier}`),
+      })),
+    },
+  };
+
   return (
     <div className="mx-auto max-w-6xl">
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+
       <nav aria-label="Fil d'Ariane" className="mb-6 flex items-center gap-1 text-sm text-muted">
         <Link href="/coloriages" className="font-semibold hover:text-grape">
           Coloriages
@@ -121,6 +162,52 @@ export default async function ThemePage({ params }: Params) {
           </Card>
         ))}
       </ul>
+
+      {guide && (
+        <div className="mt-14 grid gap-10 md:grid-cols-2">
+          <section className="md:col-span-2">
+            <h2 className="font-display text-2xl font-bold">
+              Quel coloriage pour quel âge ?
+            </h2>
+            <div className="mt-5 grid gap-8 md:grid-cols-3">
+              {parAge.map(({ niveau, texte, sujets: groupe }) => (
+                <div key={niveau}>
+                  <h3 className="font-display text-xl font-bold">
+                    {ageConseille(niveau)}
+                  </h3>
+                  <p className="mt-2 text-muted">{texte}</p>
+                  <ul className="mt-3 space-y-1">
+                    {groupe.map((sujet) => (
+                      <li key={sujet.slug}>
+                        <Link
+                          href={`/coloriages/${theme.slug}/${sujet.slug}`}
+                          className="font-semibold text-grape hover:underline"
+                        >
+                          {sujet.titre}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="font-display text-2xl font-bold">Imprimer</h2>
+            <p className="mt-2 text-muted">{guide.imprimer}</p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-2xl font-bold">{guide.idees.titre}</h2>
+            <ul className="mt-2 space-y-2 text-muted">
+              {guide.idees.idees.map((idee) => (
+                <li key={idee}>· {idee}</li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      )}
 
       <div className="mt-12">
         <EtSiCetaitToi />

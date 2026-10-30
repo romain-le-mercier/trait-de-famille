@@ -44,6 +44,20 @@ export interface Theme {
   /** Accroche de la page d'index de la bibliothèque. */
   excerpt: string;
   sujets: Sujet[];
+  /** Texte du hub sous la grille. Seuls les thèmes qui en ont un l'affichent. */
+  guide?: GuideTheme;
+}
+
+export interface GuideTheme {
+  /**
+   * Ce qui place un dessin à cet âge. La liste des dessins qui suit est
+   * calculée depuis `difficulte` et les publications, jamais écrite à la main.
+   */
+  parAge: Record<DetailLevel, string>;
+  /** Ce que donne réellement le téléchargement : voir `TelechargerColoriage`. */
+  imprimer: string;
+  /** Des usages concrets, tirés des fiches du thème. */
+  idees: { titre: string; idees: string[] };
 }
 
 const ANIMAUX: Sujet[] = [
@@ -735,6 +749,27 @@ export const THEMES: Theme[] = [
     excerpt:
       "Du sapin décoré au traîneau chargé de cadeaux : des dessins au trait pour patienter jusqu'au 25.",
     sujets: NOEL,
+    guide: {
+      parAge: {
+        "tout-petit":
+          "Traits épais, grandes zones bien fermées, peu de détails : ces dessins se colorient avec des feutres larges ou des craies grasses. Un enfant de trois ans en vient à bout presque seul ; le visage du Père Noël ou les jouets de son sac se font avec un grand.",
+        enfant:
+          "Ces dessins mêlent de grandes surfaces et des détails étroits : les ampoules du sapin, les bois du renne, les volutes du traîneau, les stries de la bûche. Il faut suivre un contour fin sans déborder, ce qui vient vers cinq ans, avec des feutres fins. Le traîneau se colorie volontiers en plusieurs fois.",
+        ado:
+          "Ce sont des coloriages de motifs : des dizaines de petites zones régulières sur la boule, des aiguilles dessinées une à une sur la couronne. Il faut des crayons bien taillés et plusieurs séances ; les adultes s'y mettent aussi.",
+      },
+      imprimer:
+        "Chaque fiche propose deux téléchargements gratuits, sans compte. Le PDF est au format A4 : le dessin y est centré avec une marge d'un centimètre, en portrait ou en paysage selon sa forme, et une ligne discrète rappelle le nom du site en bas de page. Le second bouton donne l'image seule, pour l'imprimer à une autre taille ou la glisser dans un document. Pour garder les proportions, on imprime le PDF à 100 %, sans « ajuster à la page » ; un papier de 120 g ou plus évite que les feutres traversent.",
+      idees: {
+        titre: "Pendant l'Avent",
+        idees: [
+          "Un dessin par semaine, du plus simple au plus riche : le bonnet la première semaine, le bonhomme de neige la deuxième, le sapin la troisième et le traîneau la dernière, celle de la nuit de Noël.",
+          "Le sapin à remplir : affiché sur la porte de la chambre début décembre, il reçoit une boule coloriée chaque soir, comme un calendrier de l'Avent fait main.",
+          "Des cartes de vœux : la boule ou le Père Noël, coloriés puis découpés, se collent sur un carton plié en deux, l'intérieur libre pour un mot aux grands-parents.",
+          "La table du réveillon : une feuille sous l'assiette de chaque enfant pour patienter jusqu'au dessert, la bûche coloriée en guise de menu, une chaussette marquée au prénom de chacun.",
+        ],
+      },
+    },
   },
 ];
 
