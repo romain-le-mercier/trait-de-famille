@@ -554,7 +554,7 @@ const NOEL: Sujet[] = [
     nom: "le Père Noël debout de face, barbe jusqu'à la ceinture, long manteau serré par une large ceinture, bonnet à pompon, sa hotte pleine de jouets sur l'épaule",
     titre: "Coloriage Père Noël à imprimer",
     intro:
-      "Le Père Noël de face, la barbe jusqu'à la ceinture et la hotte débordant de jouets sur l'épaule. Le manteau se remplit en deux coups de feutre rouge ; la barbe, elle, se laisse blanche.",
+      "Le Père Noël de face, la barbe sur la poitrine et, sur l'épaule, un sac d'où dépassent un ourson, un camion et des paquets. Le manteau se remplit en deux coups de feutre rouge ; la barbe, elle, se laisse blanche.",
     difficulte: "tout-petit",
     dessin:
       "Le Père Noël se tient debout, souriant, sur une simple ligne de sol. Sa barbe frisée lui couvre la poitrine, son bonnet se termine par un gros pompon, et son manteau est bordé de fourrure aux manches, en bas et sur le devant. Il porte des moufles, des bottes, et sur l'épaule un sac d'où dépassent un ourson, un camion et des paquets.",
@@ -596,7 +596,7 @@ const NOEL: Sujet[] = [
     nom: "trois paquets cadeaux empilés, du plus grand en bas au plus petit en haut, rubans et gros nœuds, un papier à rayures, un à pois, un à étoiles",
     titre: "Coloriage cadeau de Noël à imprimer",
     intro:
-      "Trois paquets empilés, du plus grand au plus petit, chacun avec son ruban et son nœud. Le papier est laissé à motifs simples : rayures, pois, étoiles — une couleur par paquet suffit à les distinguer.",
+      "Trois paquets empilés, du plus grand au plus petit, chacun ceinturé d'un ruban, et un grand nœud au sommet. Le papier est laissé à motifs simples : rayures, pois, étoiles — une couleur par paquet suffit à les distinguer.",
     difficulte: "tout-petit",
     dessin:
       "Trois paquets empilés, du plus large en bas au plus petit en haut. Celui du bas est à rayures, celui du milieu à pois, celui du haut à étoiles. Chacun est ceinturé d'un ruban qui fait la croix sur le couvercle, mais seul le paquet du sommet porte un nœud, large, avec ses deux pans.",
@@ -666,7 +666,7 @@ const NOEL: Sujet[] = [
     nom: "une bûche de Noël sur un plat, écorce en crème striée, décorée de houx et de champignons en meringue",
     titre: "Coloriage bûche de Noël à imprimer",
     intro:
-      "Une bûche sur son plat, l'écorce striée à la fourchette et décorée de houx et de champignons en meringue. À colorier en chocolat, en marron glacé ou en framboise — selon celle qu'on mangera le 25.",
+      "Une bûche sur son plat, l'écorce striée comme du bois et décorée de houx et de petits champignons. À colorier en chocolat, en marron glacé ou en framboise — selon celle qu'on mangera à Noël.",
     difficulte: "enfant",
     dessin:
       "Une bûche roulée, vue de biais sur un plat ovale. Sa tranche montre une spirale ; le dessus est strié comme une écorce, avec un nœud de bois. Elle est garnie de branches de houx aux baies rondes et de petits champignons. Le bord du plat est décoré de feuilles et de volutes.",
