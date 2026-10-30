@@ -82,3 +82,24 @@ seule la matière « meringue » n'est pas lisible. Gardés comme « petits cham
 Ce que le PM ne peut pas voir : l'intro alimente aussi `ImageObject.description` du JSON-LD (pas seulement la meta) ;
 ce champ change donc, c'est voulu. « marron glacé » retiré pour tenir la longueur. Non poussé, non déployé : MEP au
 chef d'orchestre après /valider ; à vérifier en ligne (meta description des trois fiches) avant le gel.
+
+## Validation PM
+
+**VALIDÉ** le 2026-10-30 par /valider (agent valideur). Reste en `review/` : passage en `done/`, merge, push et MEP
+au chef d'orchestre.
+
+Critères rejoués :
+- [atteint] Trois intros avant/après justifiées par l'image : blocs présents dans « Retour dev », identiques au diff
+  de `themes.ts`, cohérents avec les sections `dessin` (sac, barbe sur la poitrine, nœud au seul paquet du sommet,
+  petits champignons). Images non regardées par le valideur.
+- [atteint] Aucun « hotte », « ceinture », « meringue », « chacun avec son ruban », « le 25 » dans les nouvelles
+  intros (« hotte » et « meringue » ne restent que dans `nom`, hors périmètre) ; longueurs ~155–160 car.
+- [atteint] Autres fiches, title, canonical, JSON-LD inchangés : `git diff main...ticket/T-009 -- src` ne touche que
+  trois lignes `intro` de `src/lib/coloriages/themes.ts`.
+- [non vérifiable] Meta description en ligne : non déployé, à rejouer à la MEP.
+
+Réserves du valideur :
+- Le dev signale que le ticket se trompe sur les champignons : ils sont visibles dans l'image, seule la meringue ne
+  l'est pas. Il a gardé « petits champignons », ce qui est cohérent avec la section dessin.
+- `ImageObject.description` du JSON-LD change avec l'intro. Le dev le déclare et c'est voulu.
+- À vérifier en ligne après la MEP, avant le gel : la meta description des trois fiches.
