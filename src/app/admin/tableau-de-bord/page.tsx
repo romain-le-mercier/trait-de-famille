@@ -10,6 +10,7 @@ import {
   dernieresOeuvres,
   entonnoir,
   type ParPeriode,
+  type Periode,
 } from "@/lib/server/tableauDeBord";
 
 /** Comme le reste de l'admin : ni index, ni sitemap, et 404 sans session. */
@@ -51,7 +52,13 @@ export default async function TableauDeBordPage() {
   ]);
   const duree = Date.now() - debut;
 
-  const lignes: { libelle: string; valeurs: ParPeriode; format?: (n: number) => string }[] =
+  const lignes: {
+    libelle: string;
+    valeurs: ParPeriode;
+    format?: (n: number) => string;
+    /** Périodes que la table ne couvre pas : un tiret plutôt qu'un chiffre faux. */
+    absentes?: Periode[];
+  }[] =
     [
       { libelle: "Comptes créés", valeurs: c.comptes },
       { libelle: "Œuvres générées", valeurs: c.oeuvres },
@@ -60,13 +67,13 @@ export default async function TableauDeBordPage() {
       { libelle: "Œuvres débloquées (payées)", valeurs: c.oeuvresDebloquees },
       { libelle: "Achats", valeurs: c.achats },
       { libelle: "Chiffre d'affaires", valeurs: c.chiffreAffaires, format: euros },
-      { libelle: "Aperçus consommés *", valeurs: c.apercus },
+      { libelle: "Aperçus consommés *", valeurs: c.apercus, absentes: ["j28", "total"] },
     ];
 
   const marches = [
     { libelle: "Œuvres générées", valeur: e.oeuvres, base: null },
     { libelle: "Propriétaires distincts", valeur: e.proprietaires, base: e.oeuvres },
-    { libelle: "Comptes", valeur: e.comptes, base: e.proprietaires },
+    { libelle: "Comptes ayant généré", valeur: e.comptes, base: e.proprietaires },
     { libelle: "Comptes ayant acheté", valeur: e.comptesAcheteurs, base: e.comptes },
   ];
 
@@ -103,7 +110,9 @@ export default async function TableauDeBordPage() {
                   <td className="px-3 py-2">{l.libelle}</td>
                   {PERIODES.map((p) => (
                     <td key={p.cle} className={`${TD} text-right`}>
-                      {(l.format ?? String)(l.valeurs[p.cle])}
+                      {l.absentes?.includes(p.cle)
+                        ? "—"
+                        : (l.format ?? String)(l.valeurs[p.cle])}
                     </td>
                   ))}
                 </tr>
@@ -111,10 +120,15 @@ export default async function TableauDeBordPage() {
             </tbody>
           </table>
           <p className="px-3 pb-3 text-xs text-muted">
-            * Les quotas d&apos;aperçus sont comptés par jour calendaire et purgés
-            après 7 jours : « 24 h » vaut « aujourd&apos;hui », et 28 j comme le
-            total ne remontent pas au-delà d&apos;une semaine. Les œuvres payées
-            sont datées du déblocage.
+            Les essais non payés de plus de 30 jours peuvent avoir été effacés
+            (purge occasionnelle) : pour les œuvres générées, « Depuis le début »
+            peut sous-compter ; 24 h, 7 j et 28 j sont complets. « Anonymes » et
+            « d&apos;un compte » suivent le propriétaire actuel : un essai réclamé
+            à la connexion passe côté compte. Les œuvres payées sont datées du
+            déblocage. * Les aperçus sont comptés par jour calendaire et purgés
+            après 7 jours : « 24 h » vaut « aujourd&apos;hui » (jour de la base de
+            données), 28 j et le total
+            ne sont pas connus.
           </p>
         </Card>
 
@@ -144,6 +158,7 @@ export default async function TableauDeBordPage() {
             <p className="px-3 pb-3 text-xs text-muted">
               Propriétaire actuel de chaque œuvre : un essai anonyme réclamé à la
               connexion compte côté compte. Achat : au moins un achat dans les 28 jours.
+              Les comptes créés sans rien générer sont dans « Comptes créés » plus haut.
             </p>
           </Card>
         </section>
@@ -204,7 +219,7 @@ export default async function TableauDeBordPage() {
                       {/* eslint-disable-next-line @next/next/no-img-element -- route admin gardée, sans optimiseur */}
                       <img
                         src={`/api/admin/oeuvres/${encodeURIComponent(oeuvre.id)}/vignette`}
-                        alt=""
+                        alt="fichier introuvable"
                         width={80}
                         loading="lazy"
                         className="h-auto w-20 border border-line bg-white"

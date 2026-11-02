@@ -26,26 +26,33 @@ export async function GET(
 
   const { id } = await params;
   // `parId` d'abord : un identifiant inconnu de la base ne touche pas au disque.
-  const oeuvre = await parId(id).catch(() => null);
+  const oeuvre = await parId(id).catch((error) => {
+    console.error("[vignette] lecture en base impossible", error);
+    return null;
+  });
   if (!oeuvre) return introuvable();
 
-  let original: Buffer | null;
+  // Fichier absent, illisible ou corrompu : même réponse, pas de 500.
+  let vignette: Buffer;
   try {
-    original = await lire(oeuvre.id);
-  } catch {
+    const original = await lire(oeuvre.id);
+    if (!original) return introuvable();
+    vignette = await sharp(original)
+      .resize({ width: LARGEUR, withoutEnlargement: true })
+      .webp({ quality: 70 })
+      .toBuffer();
+  } catch (error) {
+    // L'identifiant seul : un fichier illisible peut être une œuvre payée
+    // qu'on ne sait plus livrer, et ce log est la seule trace.
+    console.error("[vignette] fichier illisible", oeuvre.id, error);
     return introuvable();
   }
-  if (!original) return introuvable();
-
-  const vignette = await sharp(original)
-    .resize({ width: LARGEUR, withoutEnlargement: true })
-    .webp({ quality: 70 })
-    .toBuffer();
 
   return new NextResponse(new Uint8Array(vignette), {
     headers: {
       "Content-Type": "image/webp",
-      // Jamais en cache partagé : la réponse dépend de la session.
+      // Aucun cache, même privé : après déconnexion, le navigateur ne doit
+      // plus pouvoir resservir un essai non payé sans repasser par la garde.
       "Cache-Control": "private, no-store",
     },
   });
