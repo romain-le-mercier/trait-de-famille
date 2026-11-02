@@ -118,3 +118,21 @@ Ce que le PM ne peut pas voir : rien n'est vérifié en production. Rien n'a ét
 d'orchestre après `/valider`. À la MEP : 404 sans session en ligne, puis premier relevé (comptes, payées, achats, CA depuis
 le début, œuvres sur 28 j) au journal.
 
+
+## Validation PM
+
+**VALIDÉ** le 2026-11-02 par /valider (agent valideur), sur `ticket/T-011` @ 5f36e3a contre `main`. Reste en `review/` : passage en `done/`, merge, push et MEP au chef d'orchestre.
+
+Critères rejoués (build de prod de la branche, Postgres jetable 300 comptes / 3 000 œuvres / 120 achats / 200 lignes de quota, sessions Auth.js forgées) :
+- [atteint] 404 sans session admin : `/admin/tableau-de-bord` 404 / 404 / 200 (sans session / non admin / admin) ; `/api/admin/oeuvres/oeuvre1/vignette` 404 / 404 / 200. Page rendue côté serveur, aucune autre API.
+- [atteint] Chiffres = SELECT à la main : comptes 28 j 95, œuvres 7 j 33, anonymes 28 j 44, CA total 672,60 €, CA 28 j 268,26 €, aperçus total 401, propriétaires distincts 28 j 134. Zéro écart.
+- [atteint] Œuvre non payée inaccessible hors admin : seules deux routes lisent le stockage (vignette admin, `/api/oeuvres/[id]/debloquer` non modifiée) ; vignette 404 hors admin, `Cache-Control: private, no-store` en admin.
+- [atteint] Page en moins de 1 s : 44, 37, 45 ms.
+- [atteint] Lien depuis l'admin existante : `/admin/coloriages` contient `href="/admin/tableau-de-bord"`.
+- En plus : `tsc --noEmit` et eslint sans erreur, page `noindex`, e-mails seulement dans le HTML admin, build OK. Périmètre respecté.
+
+Réserves du valideur (recopiées) :
+- **Non vérifiable depuis ma place** : le 404 en ligne et la baseline de production. Ce sont les deux points à consigner au journal à la MEP.
+- **Aperçus 28 j et total** : le ticket les demandait, la page affiche un tiret. `quotas_apercu` est purgée après 7 jours, le dev l'a déclaré et la page l'explique sous le tableau.
+- **Baseline « œuvres depuis le début »** : le total peut baisser à cause de la purge à 30 jours. Le dev recommande de prendre les œuvres payées et les œuvres sur 28 j. Je suis d'accord.
+- **Hérité** : `purchases` est en `ON DELETE CASCADE` sur `accounts`. Le dev l'a remonté au PM. Cela doit être traité avant tout ticket « suppression de compte ».
