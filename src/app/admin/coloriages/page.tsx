@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { THEMES } from "@/lib/coloriages/themes";
 import { getAdmin } from "@/lib/server/admin";
@@ -22,6 +23,11 @@ export default async function AdminColoriagesPage() {
 
   return (
     <main className="min-h-screen px-4 py-10 md:px-8">
+      <nav className="mx-auto mb-6 max-w-6xl text-sm">
+        <Link href="/admin/tableau-de-bord" className="font-semibold underline">
+          Tableau de bord : comptes, dessins, achats
+        </Link>
+      </nav>
       <AdminColoriages
         themes={THEMES.map((theme) => ({
           slug: theme.slug,
