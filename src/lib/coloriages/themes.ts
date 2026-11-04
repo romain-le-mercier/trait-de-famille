@@ -34,6 +34,12 @@ export interface Sujet {
   colorier?: string;
   /** Un usage du dessin imprimé, pour Noël. */
   ideeNoel?: string;
+  /**
+   * Date (ISO) de la dernière révision du texte de la fiche : celle du commit
+   * qui l'a changé, jamais une date inventée. Le sitemap prend la plus récente
+   * de celle-ci et de la publication de l'image.
+   */
+  reviseLe?: string;
 }
 
 export interface Theme {
@@ -46,6 +52,8 @@ export interface Theme {
   sujets: Sujet[];
   /** Texte du hub sous la grille. Seuls les thèmes qui en ont un l'affichent. */
   guide?: GuideTheme;
+  /** Date (ISO) de la dernière révision du texte du hub, comme `Sujet.reviseLe`. */
+  reviseLe?: string;
 }
 
 export interface GuideTheme {
@@ -556,6 +564,7 @@ const NOEL: Sujet[] = [
     intro:
       "Un sapin décoré de boules et de guirlandes, l'étoile au sommet et les paquets à son pied. Chaque boule est un petit rond fermé : on peut n'en colorier aucune pareille à sa voisine.",
     difficulte: "enfant",
+    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
     dessin:
       "L'étoile du sommet est taillée en facettes, comme un cristal. Une guirlande lumineuse fait le tour du sapin en plusieurs rangs d'ampoules ; entre elles pendent des boules à étoiles, à spirales ou à zigzags, des bonbons emballés et des sucres d'orge. Au pied, le tronc dépasse entre des paquets à rayures, à pois ou à étoiles, dont certains portent une étiquette.",
     colorier:
@@ -570,6 +579,7 @@ const NOEL: Sujet[] = [
     intro:
       "Le Père Noël de face, la barbe sur la poitrine et son sac de jouets sur l'épaule. Le manteau se remplit en deux coups de feutre rouge ; la barbe reste blanche.",
     difficulte: "tout-petit",
+    reviseLe: "2026-10-30T01:09:39+01:00", // T-009
     dessin:
       "Le Père Noël se tient debout, souriant, sur une simple ligne de sol. Sa barbe frisée lui couvre la poitrine, son bonnet se termine par un gros pompon, et son manteau est bordé de fourrure aux manches, en bas et sur le devant. Il porte des moufles, des bottes, et sur l'épaule un sac d'où dépassent un ourson, un camion et des paquets.",
     colorier:
@@ -584,6 +594,7 @@ const NOEL: Sujet[] = [
     intro:
       "Un renne de profil, les bois ramifiés au-dessus de la tête et un grelot au collier. Les bois se divisent en branches fines : c'est la partie qui demande une main plus sûre.",
     difficulte: "enfant",
+    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
     dessin:
       "Le renne est debout, de profil, la tête tournée vers la gauche et le museau souriant. Ses bois s'ouvrent largement au-dessus de lui en branches recourbées. Un collier lui entoure le cou, avec un grelot pendu devant le poitrail, où le poil forme une touffe, et une sangle lui barre le flanc. Il se tient sur un peu d'herbe, la queue relevée.",
     colorier:
@@ -598,6 +609,7 @@ const NOEL: Sujet[] = [
     intro:
       "Un bonhomme de neige en trois boules, avec son écharpe, son chapeau et sa carotte en guise de nez. Presque tout reste blanc : l'enfant ne colorie que les accessoires, et le dessin est fini en dix minutes.",
     difficulte: "tout-petit",
+    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
     dessin:
       "Le bonhomme est fait de trois boules posées dans la neige, la plus grosse en bas. Il porte un chapeau haut-de-forme cerclé d'un ruban, une écharpe dont un pan retombe sur le ventre, et deux gros boutons. Ses yeux et sa bouche sont des ronds de charbon, son nez une carotte striée, et ses bras deux branches levées, comme s'il saluait.",
     colorier:
@@ -612,6 +624,7 @@ const NOEL: Sujet[] = [
     intro:
       "Trois paquets empilés, du plus grand au plus petit, ceinturés de rubans, et un grand nœud au sommet. Rayures, pois, étoiles : une couleur par paquet suffit.",
     difficulte: "tout-petit",
+    reviseLe: "2026-10-30T01:09:39+01:00", // T-009
     dessin:
       "Trois paquets empilés, du plus large en bas au plus petit en haut. Celui du bas est à rayures, celui du milieu à pois, celui du haut à étoiles. Chacun est ceinturé d'un ruban qui fait la croix sur le couvercle, mais seul le paquet du sommet porte un nœud, large, avec ses deux pans.",
     colorier:
@@ -626,6 +639,7 @@ const NOEL: Sujet[] = [
     intro:
       "Une grosse boule suspendue à une branche de sapin, couverte de bandes, de losanges et de flocons. Chaque bande peut prendre sa couleur, et les flocons restent blancs pour trancher.",
     difficulte: "ado",
+    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
     dessin:
       "La boule est suspendue par un fil à une branche de sapin dont les aiguilles sont dessinées une à une, bourgeons compris. Son attache est striée en biais. Elle est découpée en bandes : des losanges en haut, des flocons et des points, une large frise de losanges ornés de feuillages, de nouveau des flocons, puis des arcs ; elle se termine en pointe par une petite clochette.",
     colorier:
@@ -640,6 +654,7 @@ const NOEL: Sujet[] = [
     intro:
       "Un bonnet à pompon, la pointe qui retombe et la bordure en fourrure. Deux grandes zones et une petite : c'est le plus simple de la série, fait pour les plus jeunes.",
     difficulte: "tout-petit",
+    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
     dessin:
       "Un bonnet seul, sans personnage : une grande pointe molle qui retombe sur le côté, une bordure de fourrure toute en bosses et un gros pompon au bout. Deux traits suggèrent le pli du tissu. Il n'y a ni fond ni décor.",
     colorier:
@@ -654,6 +669,7 @@ const NOEL: Sujet[] = [
     intro:
       "Le traîneau chargé de cadeaux, les patins recourbés glissant sur la neige. Les volutes de la caisse et les paquets empilés font un dessin riche, à colorier en plusieurs séances.",
     difficulte: "enfant",
+    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
     dessin:
       "Le traîneau glisse de nuit dans un paysage de neige : un croissant de lune, des étoiles, des sapins enneigés sur les collines. Sa caisse en bois est couverte de volutes et d'une branche de houx ; une lanterne pend à l'avant, une petite boule de Noël sur le côté, et deux coussins attendent sur la banquette. Derrière s'entassent des paquets à étoiles, à rayures ou à pois, une boîte ronde et un sac ficelé, plein lui aussi. Les patins s'enroulent en spirales.",
     colorier:
@@ -668,6 +684,7 @@ const NOEL: Sujet[] = [
     intro:
       "Un lutin aux oreilles pointues, le marteau à la main devant un cheval de bois. Sa tenue est découpée en petites pièces — col, ceinture, chaussons — qui appellent chacune leur couleur.",
     difficulte: "enfant",
+    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
     dessin:
       "Un lutin souriant, aux oreilles pointues, tient un marteau à côté d'un cheval à bascule. Son bonnet est rayé, bordé de zigzags, et finit par un grelot. Il porte un col à pointes, une veste boutonnée, une large ceinture à boucle, un collant rayé et des chaussons pointus ornés de grelots. Le cheval a une selle, un étrier, une bride, une crinière et une robe à pois.",
     colorier:
@@ -682,6 +699,7 @@ const NOEL: Sujet[] = [
     intro:
       "Une bûche sur son plat, l'écorce striée, garnie de houx et de petits champignons. À colorier en chocolat ou en framboise, selon celle qu'on mangera à Noël.",
     difficulte: "enfant",
+    reviseLe: "2026-10-30T01:09:39+01:00", // T-009
     dessin:
       "Une bûche roulée, vue de biais sur un plat ovale. Sa tranche montre une spirale ; le dessus est strié comme une écorce, avec un nœud de bois. Elle est garnie de branches de houx aux baies rondes et de petits champignons. Le bord du plat est décoré de feuilles et de volutes.",
     colorier:
@@ -696,6 +714,7 @@ const NOEL: Sujet[] = [
     intro:
       "Une couronne de branches de sapin, garnie de pommes de pin, de baies de houx et d'un grand nœud. Les aiguilles sont dessinées une à une : c'est le coloriage le plus long de la série, pour les grands.",
     difficulte: "ado",
+    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
     dessin:
       "Une couronne de branches de sapin, ouverte au centre, sans bougies. Les aiguilles sont dessinées une à une sur tout le tour. Des pommes de pin aux écailles détaillées et des feuilles de houx avec leurs baies sont réparties dans les branches. En bas, un grand nœud laisse retomber deux longs rubans.",
     colorier:
@@ -710,6 +729,7 @@ const NOEL: Sujet[] = [
     intro:
       "Une chaussette pendue à la cheminée, d'où dépassent un sucre d'orge et un ourson. Le revers est assez large pour y écrire son prénom avant de la colorier.",
     difficulte: "tout-petit",
+    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
     dessin:
       "La chaussette pend devant une cheminée en briques. Son revers est large, uni et laissé vide. Le reste est découpé en bandes : des étoiles et des points, puis des points seuls, avec la pointe et le talon à part. Un ourson et un sucre d'orge dépassent par le haut.",
     colorier:
@@ -749,6 +769,7 @@ export const THEMES: Theme[] = [
     excerpt:
       "Du sapin décoré au traîneau chargé de cadeaux : des dessins au trait pour patienter jusqu'au 25.",
     sujets: NOEL,
+    reviseLe: "2026-10-30T01:32:37+01:00", // T-008
     guide: {
       parAge: {
         "tout-petit":

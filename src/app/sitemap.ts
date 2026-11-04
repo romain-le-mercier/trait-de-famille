@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { THEMES } from "@/lib/coloriages/themes";
+import { getSujet, THEMES } from "@/lib/coloriages/themes";
 import { GUIDES } from "@/lib/guides";
 import { listerPublies } from "@/lib/server/coloriages";
 import { SITE_URL } from "@/lib/site";
@@ -27,30 +27,40 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const publies = await listerPublies().catch(() => []);
   const themesPublies = new Set(publies.map((dessin) => dessin.theme));
 
-  const coloriages = publies.map((dessin) => ({
+  // La date d'une fiche est la plus récente de la publication de son image et
+  // de la révision de son texte : réécrire une fiche doit se voir à Google.
+  const datesFiches = publies.map((dessin) => ({
+    dessin,
+    date: plusRecente(
+      dessin.publieLe,
+      depuisIso(getSujet(dessin.theme, dessin.slug)?.reviseLe),
+    ),
+  }));
+
+  const coloriages = datesFiches.map(({ dessin, date }) => ({
     url: `${SITE_URL}/coloriages/${dessin.theme}/${dessin.slug}`,
-    lastModified: dessin.publieLe ? new Date(dessin.publieLe) : undefined,
+    lastModified: date !== null ? new Date(date) : undefined,
     changeFrequency: "monthly" as const,
     priority: 0.5,
   }));
 
-  // Un hub change à chaque publication d'une de ses fiches : sa date est
-  // celle de la plus récente, absente si aucune n'est datée.
-  const dernierePublication = new Map<string, number>();
-  for (const dessin of publies) {
-    if (!dessin.publieLe) continue;
-    const actuelle = dernierePublication.get(dessin.theme) ?? 0;
-    if (dessin.publieLe > actuelle) {
-      dernierePublication.set(dessin.theme, dessin.publieLe);
-    }
+  // Un hub change avec chacune de ses fiches et avec son propre texte : sa
+  // date est la plus récente de toutes, absente si aucune n'est datée.
+  const derniereFiche = new Map<string, number>();
+  for (const { dessin, date } of datesFiches) {
+    const actuelle = plusRecente(derniereFiche.get(dessin.theme) ?? null, date);
+    if (actuelle !== null) derniereFiche.set(dessin.theme, actuelle);
   }
 
   const themes = THEMES.filter((theme) => themesPublies.has(theme.slug)).map(
     (theme) => {
-      const derniere = dernierePublication.get(theme.slug);
+      const derniere = plusRecente(
+        derniereFiche.get(theme.slug) ?? null,
+        depuisIso(theme.reviseLe),
+      );
       return {
         url: `${SITE_URL}/coloriages/${theme.slug}`,
-        lastModified: derniere ? new Date(derniere) : undefined,
+        lastModified: derniere !== null ? new Date(derniere) : undefined,
         changeFrequency: "weekly" as const,
         priority: 0.7,
       };
@@ -86,4 +96,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...coloriages,
     ...legal,
   ];
+}
+
+/** Une date ISO en millisecondes ; absente ou illisible, elle ne compte pas. */
+function depuisIso(iso: string | undefined): number | null {
+  if (!iso) return null;
+  const ms = Date.parse(iso);
+  return Number.isNaN(ms) ? null : ms;
+}
+
+function plusRecente(a: number | null, b: number | null): number | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  return Math.max(a, b);
 }
