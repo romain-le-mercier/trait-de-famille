@@ -85,3 +85,18 @@ Diff des lastmod (main → branche) :
 73 autres URL : identiques.
 ```
 
+
+## Validation PM
+
+**VALIDÉ** le 2026-11-04 par /valider (agent valideur), sur d55a986.
+
+Critères rejoués :
+- [atteint] Hub Noël et 12 fiches datés du 29 ou 30/10 ; `animaux` (0/36) et `dinosaures` (0/22) sans `reviseLe`, lastmod inchangé. Lu dans `sitemap.ts` et `themes.ts` chargé sous node ; dates recoupées au `git log` (0cf10f8 le 29/10, 480e6c5 et 33ca5e6 le 30/10) ; `npx tsc --noEmit` sans erreur.
+- [atteint, avec réserve] Aucune autre URL ne change : le diff ne touche que le calcul fiche/hub, comportement identique à `main` sans `reviseLe` ; comparaison des deux sitemaps non rejouée.
+
+Réserves du valideur :
+- Je n'ai pas relancé le build comparatif. Les chiffres du ticket (13 changés, 73 identiques, 86 URL) viennent du dev, et ils sont cohérents avec le code et les données que j'ai lus.
+- La prod n'est pas lisible depuis `curl` (Cloudflare, comme l'a vu le dev). La référence est donc `main` buildé en local. Le lastmod en ligne reste à relire après la mise en production, ce que le ticket prévoit déjà.
+- `reviseLe` est saisi à la main et rien ne le force. Une retouche future du texte sans mise à jour laissera un lastmod périmé.
+- Hérité, non lié à ce ticket : `sitemap.ts:27` sert un sitemap vide de fiches en 200 si Postgres échoue. C'est à arbitrer par le PM.
+- Les heures de `reviseLe` (12:45:38, 01:09:39, 01:32:37) ne sont pas toutes l'heure de commit visible dans `git log`. Pour T-007, le commit est à 12:51:01 et `reviseLe` à 12:45:38. Le jour est le même, donc le critère tient.
