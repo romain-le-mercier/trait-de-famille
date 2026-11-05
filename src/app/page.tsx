@@ -12,6 +12,7 @@ import { Trust } from "@/components/marketing/Trust";
 import { UseCases } from "@/components/marketing/UseCases";
 import { PACKS } from "@/lib/pricing";
 import { listerFichesNoel } from "@/lib/server/coloriages";
+import { paiementOuvert } from "@/lib/server/paiement";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 // Les liens vers les fiches Noël se lisent en base à chaque requête.
@@ -34,6 +35,9 @@ const faqSchema = {
 /**
  * Le produit et ses trois packs. Les prix viennent de `PACKS`, comme la grille
  * tarifaire affichée : une seule source, pas de balisage qui dérive.
+ * N'est émis que si le paiement est ouvert (même condition que
+ * `GET /api/checkout`) : on ne déclare pas à Google une offre en stock
+ * qu'on ne peut pas acheter. Sans offre, pas de `Product` du tout.
  */
 const productSchema = {
   "@context": "https://schema.org",
@@ -55,6 +59,7 @@ const productSchema = {
 
 export default async function HomePage() {
   const fichesNoel = await listerFichesNoel();
+  const avecOffres = paiementOuvert();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -88,10 +93,12 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
-      />
+      {avecOffres && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        />
+      )}
     </div>
   );
 }

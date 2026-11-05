@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { auth, authConfigured } from "@/auth";
 import { getPack } from "@/lib/pricing";
+import { paiementOuvert } from "@/lib/server/paiement";
 
 /** Indique au client si le paiement réel et le SSO sont configurés. */
 export async function GET() {
   const secretKey = process.env.STRIPE_SECRET_KEY ?? "";
   return NextResponse.json({
-    enabled: Boolean(secretKey),
+    enabled: paiementOuvert(),
     // Utile pour savoir si on travaille en test ou en réel.
     mode: secretKey.startsWith("sk_live") ? "live" : secretKey ? "test" : null,
     authConfigured,

@@ -40,3 +40,4 @@ Ce que personne d'autre ne peut relever : la date exacte de mise en production, 
 | 2026-11-04 | T-010 | pris | | | |
 | 2026-11-04 | T-010 | livré (fait) | d55a986 | 13 lastmod : hub Noël 21/10 → 30/10, 12 fiches 05/10 (ou 21/10) → 29/10 ou 30/10 ; 73 URL inchangées | Comparaison avec main buildé en local (prod derrière Cloudflare). Non poussé, non déployé : MEP au chef, puis resoumettre le sitemap dans GSC et relire en ligne le lastmod du hub et d'une fiche. |
 | 2026-11-04 | T-010 | validé (valideur) | d55a986 | — | Réserves : build comparatif non rejoué (13/73 du dev) ; lastmod en ligne à relire après MEP (Cloudflare) ; reviseLe manuel, non forcé ; hérité : sitemap.ts:27 sert un sitemap vide en 200 si Postgres échoue. Reste en review/, done/ et MEP au chef d orchestre. |
+| 2026-11-05 | T-012 | pris | | | |
