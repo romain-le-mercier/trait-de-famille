@@ -32,13 +32,16 @@ il rend le balisage conditionnel, donc juste dans les deux cas.
 
 ## Critère de fin (vérifiable par le dev, seul)
 
-- [ ] Build de prod, `STRIPE_SECRET_KEY` vide : `curl -s localhost:3000/ | grep -c '"@type":"Offer"'` → 0, et
+- [x] Build de prod, `STRIPE_SECRET_KEY` vide : `curl -s localhost:3000/ | grep -c '"@type":"Offer"'` → 0, et
       `grep -c '"@type":"Product"'` → 0 ; le bloc `FAQPage` est toujours présent (compte avant = compte après).
-- [ ] Même build, `STRIPE_SECRET_KEY` renseignée avec une clé de test factice : `"@type":"Offer"` → 3, prix et `url`
+      Preuve (`next build` puis `next start`, port 3123) : avant Offer=3 Product=1 FAQPage=1 → après Offer=0 Product=0 FAQPage=1.
+- [x] Même build, `STRIPE_SECRET_KEY` renseignée avec une clé de test factice : `"@type":"Offer"` → 3, prix et `url`
       identiques à avant (diff du bloc JSON-LD avant / après : vide).
-- [ ] L'accueil reste rendu à la requête (pas figé au build avec la valeur de l'environnement de build) : prouvé en
+      Preuve : `sk_test_factice123` → Offer=3 Product=1 ; `diff product-avant-sans.txt product-apres-avec.txt` vide ; page entière de même taille (110 928 o).
+- [x] L'accueil reste rendu à la requête (pas figé au build avec la valeur de l'environnement de build) : prouvé en
       relançant le même build avec puis sans la variable, sans rebuild.
-- [ ] Typecheck et lint passent.
+      Preuve : même build, trois démarrages : sans clé 0 Offer → avec clé 3 → sans clé 0. Build : `ƒ /` (dynamique, `force-dynamic` déjà en place).
+- [x] Typecheck et lint passent. Preuve : `npm run typecheck` et `npm run lint` sortent en 0.
 
 ## Hors périmètre
 
@@ -60,5 +63,21 @@ Aucun.
 ---
 
 ## Retour dev
+
+**Fait.** Commit `d42134b` sur `ticket/T-012`, non poussé, non déployé.
+
+- Condition extraite dans `src/lib/server/paiement.ts` (`paiementOuvert()`), utilisée par l'accueil **et** par
+  `GET /api/checkout` (`enabled`). C'est le seul changement dans `api/checkout` : une ligne, valeur renvoyée identique,
+  comme l'autorise le point 3 du « Quoi ». Le `POST` (vente) n'est pas touché.
+- Valeur remplacée : le bloc `productSchema` est inchangé dans le code (`src/app/page.tsx`) ; seul son rendu est
+  conditionnel. Avant ce commit il sortait toujours (référence : `main` à `f99c0d7`).
+- Ce que le PM ne voit pas : la condition est « clé non vide », comme `/api/checkout`. Une clé posée mais invalide en
+  prod rouvrirait les 3 `Offer` alors que le paiement échouerait (502). Hors périmètre ; à garder en tête à la reprise
+  de Stripe.
+- À la MEP : compter `"@type":"Offer"` à l'origine Coolify. 0 ⇒ Stripe n'est pas configuré en prod ; 3 ⇒ une clé est
+  posée (et la question devient : est-elle valide ?).
+
+Revue adversariale du 2026-11-05 (niveau léger, reviewer-seo seul) : 0 défaut rapporté, 0 retenu, 1 mineur noté, 0 hérité, 0 réfuté.
+- Mineur : `paiementOuvert()` ne vérifie que la présence de la clé, pas sa validité (voir plus haut).
 
 ## Validation PM
