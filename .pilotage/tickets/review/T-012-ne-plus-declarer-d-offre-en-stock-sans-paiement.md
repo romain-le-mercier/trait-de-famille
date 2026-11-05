@@ -81,3 +81,18 @@ Revue adversariale du 2026-11-05 (niveau léger, reviewer-seo seul) : 0 défaut 
 - Mineur : `paiementOuvert()` ne vérifie que la présence de la clé, pas sa validité (voir plus haut).
 
 ## Validation PM
+
+**VALIDÉ** le 2026-11-05 par /valider (agent valideur). Reste en review/ : passage en done/, merge, push et MEP au chef d'orchestre.
+
+Critères rejoués :
+- [atteint] Build de prod sans `STRIPE_SECRET_KEY` : `next start` puis `curl /` → HTTP 200, Offer=0, Product=0, FAQPage=1. « Avant » (3/1/1) non rejoué, cohérent avec le diff.
+- [atteint] Clé factice `sk_test_x` : Offer=3, Product=1 ; `/api/checkout` → `enabled:true, mode:"test"`. `productSchema` non modifié dans le diff.
+- [atteint] Accueil rendu à la requête sans rebuild : même build, clé vide → 0, clé posée → 3, clé vide → 0.
+- [atteint] `npm run typecheck`, `npm run lint`, build : sortie 0.
+
+Périmètre respecté : `src/app/page.tsx`, `src/lib/server/paiement.ts` (nouveau), `src/app/api/checkout/route.ts` (seul `enabled` passe par `paiementOuvert()`, même valeur) ; POST, prix, `/debloquer`, grille tarifaire et JSON-LD FAQ intacts.
+
+Réserves du valideur (recopiées) :
+- `paiementOuvert()` teste seulement que la clé n'est pas vide. Une clé posée mais invalide en production rouvrirait les 3 Offer alors que le paiement échouerait. Le dev l'a noté lui-même.
+- À la MEP, il faut compter les `"@type":"Offer"` à l'origine Coolify. Cloudflare bloque la vérification depuis le poste. 0 veut dire que Stripe n'est pas configuré en production, 3 qu'une clé est posée.
+- Les logs du serveur montrent une stack trace pendant le rendu de `/` (`page.js` → `stringify`). La page répond quand même en 200. Je ne l'ai pas investiguée et je ne la rattache pas à ce ticket.
