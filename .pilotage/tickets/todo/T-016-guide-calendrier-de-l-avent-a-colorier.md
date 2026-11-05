@@ -45,7 +45,7 @@ page entre en index avant le 1er décembre, au moment où la requête culmine.
 - [ ] Les 24 cibles répondent 200 (aucun lien vers une fiche non publiée).
 - [ ] Le texte des 24 jours est propre à chaque dessin : aucune phrase identique entre deux jours, et chaque phrase
       ne décrit que ce que montre le dessin servi (relu contre l'`intro` / le texte de la fiche, pas inventé).
-- [ ] `/sitemap.xml` sert 87 URL (86 au 2026-11-05) dont la nouvelle, avec un `lastmod` ; `/guides` la liste.
+- [ ] `/sitemap.xml` sert une URL de plus qu'avant la MEP (86 au 2026-11-05), dont la nouvelle, avec un `lastmod` ; `/guides` la liste.
 - [ ] Le hub `/coloriages/noel` et `/coloriages/noel/sapin-de-noel` contiennent `href="/guides/calendrier-de-l-avent-coloriage"`.
 - [ ] `<title>` servi ≤ 65 caractères ; `meta description` présente ; build et lint verts.
 
@@ -63,7 +63,7 @@ Aucun.
 
 ## À consigner dans journal.md
 
-- Date et commit de MEP, vérifiés à l'origine (statut, nombre de liens, sitemap 86 → 87).
+- Date et commit de MEP, vérifiés à l'origine (statut, nombre de liens, sitemap +1).
 - La liste des 24 fiches retenues, dans l'ordre.
 - Title et meta servis.
 - Rappel du pari : page à indexer avant le 2026-12-01 (`gsc-inspect.js`), ≥ 60 impressions sur les 28 j finissant le 2026-12-15.
