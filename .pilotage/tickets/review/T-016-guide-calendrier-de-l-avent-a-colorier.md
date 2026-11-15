@@ -114,3 +114,19 @@ Ce que le PM ne voit pas :
   puis demander l'indexation du guide dans GSC (pari : indexé avant le 2026-12-01).
 
 ## Validation PM
+
+**VALIDÉ** le 2026-11-15 par /valider (agent valideur), commit 934ee3a.
+
+Critères rejoués :
+- Page en 200, un seul h1, 24 liens fiches distincts dont 12 Noël : atteint. Les 24 couples thème/slug sont extraits du source, distincts et présents dans `themes.ts`. Le h1 et le 200 sont recoupés par le source, sans rendu.
+- Les 24 cibles répondent 200 : non vérifiable sans base peuplée ni déploiement. À rejouer après la MEP.
+- 24 phrases distinctes : atteint (20 lues dans le source).
+- Sitemap 86 → 87 : non vérifiable en local. L'entrée existe dans `guides.ts` avec `updated: 2026-11-15`.
+- Liens depuis le hub Noël et la fiche sapin : atteint (`lienIdeeNoel` pour la fiche sapin, `guide.idees.lien` pour le hub).
+- Title et meta : atteint. Title de 63 caractères avec le gabarit. Meta commençant par « 24 coloriages gratuits à imprimer ». ItemList présent.
+- `tsc --noEmit` et `eslint` : sortie vide, code 0.
+
+Réserves du valideur (recopiées) :
+- `updated` et `lastmod` sont fixés au 2026-11-15. Si la MEP glisse, la date affichée sera fausse.
+- Après la MEP, rejouer à l'origine `51.210.6.44` : 200, 24 liens, un `<h1`, sitemap à 87 URL. Demander ensuite l'indexation dans GSC.
+- Les 24 URL de fiches et les vignettes n'ont pas été testées en ligne. Elles sont censées exister d'après le sitemap de production relevé par le dev.
