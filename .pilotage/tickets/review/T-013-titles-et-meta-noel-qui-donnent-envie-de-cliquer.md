@@ -105,3 +105,23 @@ Ce que le PM ne voit pas :
 ## Validation PM
 
 *(rempli par pm-lead au passage en done/ ou au renvoi en todo/)*
+
+**VALIDÉ** le 2026-11-15 par /valider (agent valideur), sur `ticket/T-013` @ 1e13be9.
+
+Critères rejoués :
+- [atteint] 13 titles (47-65 car., tous avec « gratuit ») et 13 metas (134-155 car., « gratuit » + « A4 »/« PDF »), tous distincts, mesurés dans `themes.ts` ; title en `absolute` (pas de suffixe ajouté) ; `tsc --noEmit` rc=0.
+- [atteint, avec réserve] H1, texte visible, alt, JSON-LD, canonical inchangés : diff limité à title/description/openGraph/twitter de `generateMetadata` ; comparaison HTML non reproduite par le valideur.
+- [atteint, avec réserve] 58 autres fiches et hubs animaux/dinosaures : champs facultatifs avec repli sur `titre`/`intro`, diff limité aux 13 entrées Noël ; pas de rejeu HTML.
+- [atteint] Sitemap : aucune page ajoutée ni retirée (87 avec T-016 déjà sur main ; le ticket disait 86).
+- [NON VÉRIFIABLE] Rejeu des 13 URL à l'origine 51.210.6.44 : pas encore de MEP.
+
+Périmètre respecté.
+
+Réserves du valideur (telles quelles) :
+- Les `lastmod` et `reviseLe` sont figés au 2026-11-15 alors que la MEP n'a pas eu lieu. Si elle glisse, il faut les recaler sur le jour réel, comme le dit le dev.
+- `og:title` porte désormais le suffixe de marque là où le title l'a, et il ne l'avait pas avant. Le dev l'a déclaré dans « Retour dev ».
+- La chaussette et le traîneau n'ont plus le suffixe de marque, faute de place : 47 + 19 = 66 caractères.
+- Après la MEP, il reste à rejouer title et meta à l'origine, puis à demander la réindexation dans GSC (geste de console).
+- La meta de la boule dit « proche d'un mandala », mais je n'ai pas retrouvé ce mot dans la source du dessin. Je ne l'ai pas contrôlé image en main.
+
+Reste en review/ : passage en done/, merge, push et MEP au chef d'orchestre.
