@@ -174,24 +174,22 @@ const lienTexte =
   "font-semibold text-grape underline decoration-2 underline-offset-2";
 
 export default async function Page() {
-  // Base muette : les liens restent (les fiches existent), seules les
-  // vignettes manquent — mieux qu'un guide en erreur.
-  const publies = await listerPublies()
-    .then((dessins) => new Map(dessins.map((d) => [d.slug, d.mime])))
-    .catch((error) => {
-      console.error("Dessins publiés illisibles en base :", error);
-      return null;
-    });
+  // Base muette : l'erreur remonte (5xx), comme pour le hub et les fiches,
+  // plutôt qu'une page dégradée qui lierait des fiches non vérifiées.
+  const publies = new Map(
+    (await listerPublies()).map((d) => [`${d.theme}/${d.slug}`, d.mime]),
+  );
 
   const jours = JOURS.map((jour, i) => {
     const sujet = getSujet(jour.theme, jour.slug)!;
-    const mime = publies?.get(jour.slug);
+    const mime = publies.get(`${jour.theme}/${jour.slug}`);
     return {
       ...jour,
+      numero: i + 1,
       date: `${i === 0 ? "1er" : i + 1} décembre`,
       titre: sujet.titre,
       href: `/coloriages/${jour.theme}/${jour.slug}`,
-      lie: publies === null || mime !== undefined,
+      lie: mime !== undefined,
       image: mime ? `/coloriages/image/${nomFichierImage(jour.slug, mime)}` : null,
     };
   });
@@ -204,9 +202,10 @@ export default async function Page() {
     numberOfItems: jours.filter((jour) => jour.lie).length,
     itemListElement: jours
       .filter((jour) => jour.lie)
-      .map((jour, i) => ({
+      .map((jour) => ({
         "@type": "ListItem",
-        position: i + 1,
+        // Le numéro du jour, même si une fiche manque : le nom porte la date.
+        position: jour.numero,
         name: `${jour.date} — ${jour.titre}`,
         url: absoluteUrl(jour.href),
       })),
