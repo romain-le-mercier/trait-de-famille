@@ -75,6 +75,17 @@ export const GUIDES: Guide[] = [
     updated: "2026-08-11",
     readingMinutes: 5,
   },
+  {
+    slug: "calendrier-de-l-avent-coloriage",
+    title: "Coloriage calendrier de l'Avent : 24 dessins",
+    heading: "Un calendrier de l'Avent à colorier, un dessin par jour",
+    description:
+      "24 coloriages gratuits à imprimer, un par jour du 1er au 24 décembre : du chat du premier soir au traîneau de la nuit de Noël, un calendrier de l'Avent fait main.",
+    excerpt:
+      "Vingt-quatre dessins à imprimer d'avance, un par soir de décembre, du plus simple au traîneau de la nuit de Noël.",
+    updated: "2026-11-15",
+    readingMinutes: 6,
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {

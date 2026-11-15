@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { Badge, Card } from "@/components/ui/Card";
 import { SectionTitle } from "@/components/marketing/SectionTitle";
 import { EtSiCetaitToi } from "@/components/coloriages/EtSiCetaitToi";
+import { TexteAvecLien } from "@/components/coloriages/TexteAvecLien";
 import {
   ageConseille,
   getTheme,
@@ -202,7 +203,9 @@ export default async function ThemePage({ params }: Params) {
             <h2 className="font-display text-2xl font-bold">{guide.idees.titre}</h2>
             <ul className="mt-2 space-y-2 text-muted">
               {guide.idees.idees.map((idee) => (
-                <li key={idee}>· {idee}</li>
+                <li key={idee}>
+                  · <TexteAvecLien texte={idee} lien={guide.idees.lien} />
+                </li>
               ))}
             </ul>
           </section>

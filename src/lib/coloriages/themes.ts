@@ -34,12 +34,24 @@ export interface Sujet {
   colorier?: string;
   /** Un usage du dessin imprimé, pour Noël. */
   ideeNoel?: string;
+  /** Un passage de `ideeNoel` rendu cliquable. */
+  lienIdeeNoel?: LienDansTexte;
   /**
    * Date (ISO) de la dernière révision du texte de la fiche : celle du commit
    * qui l'a changé, jamais une date inventée. Le sitemap prend la plus récente
    * de celle-ci et de la publication de l'image.
    */
   reviseLe?: string;
+}
+
+/**
+ * Un lien posé sur un passage d'un texte existant, plutôt qu'un texte
+ * réécrit : `ancre` doit figurer tel quel dans le texte. S'il n'y est plus, le
+ * texte s'affiche sans lien (voir `TexteAvecLien`).
+ */
+export interface LienDansTexte {
+  ancre: string;
+  href: string;
 }
 
 export interface Theme {
@@ -65,7 +77,7 @@ export interface GuideTheme {
   /** Ce que donne réellement le téléchargement : voir `TelechargerColoriage`. */
   imprimer: string;
   /** Des usages concrets, tirés des fiches du thème. */
-  idees: { titre: string; idees: string[] };
+  idees: { titre: string; idees: string[]; lien?: LienDansTexte };
 }
 
 const ANIMAUX: Sujet[] = [
@@ -571,6 +583,10 @@ const NOEL: Sujet[] = [
       "Le feuillage est la plus grande zone : un vert franc suffit, ou deux verts pour séparer les étages de branches. Le travail est dans les détails : chaque ampoule, chaque boule, chaque bonbon est une petite zone fermée qui demande un feutre fin. C'est pour cela qu'il est annoncé dès cinq ans. Une idée simple : du jaune pour toutes les ampoules, et une couleur différente pour chaque boule.",
     ideeNoel:
       "Les étiquettes des paquets sont vides : on peut y écrire les prénoms de la famille avant de colorier. Affiché sur la porte de la chambre début décembre, le sapin peut aussi se remplir petit à petit, une boule coloriée chaque soir, comme un calendrier de l'Avent fait main.",
+    lienIdeeNoel: {
+      ancre: "comme un calendrier de l'Avent fait main",
+      href: "/guides/calendrier-de-l-avent-coloriage",
+    },
   },
   {
     slug: "pere-noel",
@@ -789,6 +805,10 @@ export const THEMES: Theme[] = [
           "Des cartes de vœux : la boule ou le Père Noël, coloriés puis découpés, se collent sur un carton plié en deux, l'intérieur libre pour un mot aux grands-parents.",
           "La table du réveillon : une feuille sous l'assiette de chaque enfant pour patienter jusqu'au dessert, la bûche coloriée en guise de menu, une chaussette marquée au prénom de chacun.",
         ],
+        lien: {
+          ancre: "comme un calendrier de l'Avent fait main",
+          href: "/guides/calendrier-de-l-avent-coloriage",
+        },
       },
     },
   },

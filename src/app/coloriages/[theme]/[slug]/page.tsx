@@ -6,11 +6,13 @@ import { Badge, Card } from "@/components/ui/Card";
 import { EtSiCetaitToi } from "@/components/coloriages/EtSiCetaitToi";
 import { PartagerColoriage } from "@/components/coloriages/PartagerColoriage";
 import { TelechargerColoriage } from "@/components/coloriages/TelechargerColoriage";
+import { TexteAvecLien } from "@/components/coloriages/TexteAvecLien";
 import {
   ageConseille,
   getSujet,
   getTheme,
   nomFichierImage,
+  type LienDansTexte,
 } from "@/lib/coloriages/themes";
 import {
   getColoriage,
@@ -111,8 +113,11 @@ export default async function ColoriagePage({ params }: Params) {
   const sections = [
     { titre: "Ce que montre le dessin", texte: sujet.dessin },
     { titre: "Pour le colorier", texte: sujet.colorier },
-    { titre: "Une idée pour Noël", texte: sujet.ideeNoel },
-  ].filter((section): section is { titre: string; texte: string } => !!section.texte);
+    { titre: "Une idée pour Noël", texte: sujet.ideeNoel, lien: sujet.lienIdeeNoel },
+  ].filter(
+    (section): section is { titre: string; texte: string; lien?: LienDansTexte } =>
+      !!section.texte,
+  );
 
   const noel =
     theme.slug === "noel"
@@ -236,10 +241,12 @@ export default async function ColoriagePage({ params }: Params) {
 
       {sections.length > 0 && (
         <section className="mt-14 grid gap-8 md:grid-cols-3">
-          {sections.map(({ titre, texte }) => (
+          {sections.map(({ titre, texte, lien }) => (
             <div key={titre}>
               <h2 className="font-display text-xl font-bold">{titre}</h2>
-              <p className="mt-2 text-muted">{texte}</p>
+              <p className="mt-2 text-muted">
+                <TexteAvecLien texte={texte} lien={lien} />
+              </p>
             </div>
           ))}
         </section>
