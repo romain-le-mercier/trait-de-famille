@@ -22,6 +22,18 @@ export interface Sujet {
   titre: string;
   /** Deux phrases propres à ce dessin, affichées et servant de description. */
   intro: string;
+  /**
+   * Title servi tel quel dans le résultat de recherche, suffixe de marque
+   * compris (ou retiré quand il ferait dépasser 65 caractères). Distinct de
+   * `titre`, qui reste le H1, l'alt et le nom des données structurées.
+   * Absent : le title est `titre` + le suffixe du layout.
+   */
+  titreRecherche?: string;
+  /**
+   * Meta description (et og/twitter), ≤ 155 caractères. Distincte du texte
+   * visible et des données structurées. Absente : la description est le texte visible.
+   */
+  descriptionRecherche?: string;
   /** Pilote le niveau de détail demandé au modèle et l'âge annoncé. */
   difficulte: DetailLevel;
   /**
@@ -59,6 +71,18 @@ export interface Theme {
   nom: string;
   titre: string;
   description: string;
+  /**
+   * Title servi tel quel dans le résultat de recherche, suffixe de marque
+   * compris (ou retiré quand il ferait dépasser 65 caractères). Distinct de
+   * `titre`, qui reste le H1 et le nom des données structurées.
+   * Absent : le title est `titre` + le suffixe du layout.
+   */
+  titreRecherche?: string;
+  /**
+   * Meta description (et og/twitter), ≤ 155 caractères. Distincte du texte
+   * visible et des données structurées. Absente : la description est `description`.
+   */
+  descriptionRecherche?: string;
   /** Accroche de la page d'index de la bibliothèque. */
   excerpt: string;
   sujets: Sujet[];
@@ -573,10 +597,13 @@ const NOEL: Sujet[] = [
     slug: "sapin-de-noel",
     nom: "un sapin de Noël décoré de boules et de guirlandes, une étoile au sommet, des paquets à son pied",
     titre: "Coloriage sapin de Noël à imprimer",
+    titreRecherche: "Coloriage sapin de Noël gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit du sapin décoré, en PDF A4 : boules, guirlandes, étoile au sommet et paquets au pied. Chaque boule est un rond à colorier, dès 5 ans.",
     intro:
       "Un sapin décoré de boules et de guirlandes, l'étoile au sommet et les paquets à son pied. Chaque boule est un petit rond fermé : on peut n'en colorier aucune pareille à sa voisine.",
     difficulte: "enfant",
-    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "L'étoile du sommet est taillée en facettes, comme un cristal. Une guirlande lumineuse fait le tour du sapin en plusieurs rangs d'ampoules ; entre elles pendent des boules à étoiles, à spirales ou à zigzags, des bonbons emballés et des sucres d'orge. Au pied, le tronc dépasse entre des paquets à rayures, à pois ou à étoiles, dont certains portent une étiquette.",
     colorier:
@@ -592,10 +619,13 @@ const NOEL: Sujet[] = [
     slug: "pere-noel",
     nom: "le Père Noël debout de face, barbe jusqu'à la ceinture, long manteau serré par une large ceinture, bonnet à pompon, sa hotte pleine de jouets sur l'épaule",
     titre: "Coloriage Père Noël à imprimer",
+    titreRecherche: "Coloriage Père Noël gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit du Père Noël en PDF A4 : de face, la barbe sur la poitrine et son sac de jouets sur l'épaule. Traits épais et grandes zones, dès 3 ans.",
     intro:
       "Le Père Noël de face, la barbe sur la poitrine et son sac de jouets sur l'épaule. Le manteau se remplit en deux coups de feutre rouge ; la barbe reste blanche.",
     difficulte: "tout-petit",
-    reviseLe: "2026-10-30T01:09:39+01:00", // T-009
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "Le Père Noël se tient debout, souriant, sur une simple ligne de sol. Sa barbe frisée lui couvre la poitrine, son bonnet se termine par un gros pompon, et son manteau est bordé de fourrure aux manches, en bas et sur le devant. Il porte des moufles, des bottes, et sur l'épaule un sac d'où dépassent un ourson, un camion et des paquets.",
     colorier:
@@ -607,10 +637,13 @@ const NOEL: Sujet[] = [
     slug: "renne-de-noel",
     nom: "un renne de profil, grands bois ramifiés, un grelot au collier",
     titre: "Coloriage renne de Noël à imprimer",
+    titreRecherche: "Coloriage renne de Noël gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit d'un renne de Noël en PDF A4 : de profil, les bois ramifiés au-dessus de la tête et un grelot au collier. Dès 5 ans.",
     intro:
       "Un renne de profil, les bois ramifiés au-dessus de la tête et un grelot au collier. Les bois se divisent en branches fines : c'est la partie qui demande une main plus sûre.",
     difficulte: "enfant",
-    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "Le renne est debout, de profil, la tête tournée vers la gauche et le museau souriant. Ses bois s'ouvrent largement au-dessus de lui en branches recourbées. Un collier lui entoure le cou, avec un grelot pendu devant le poitrail, où le poil forme une touffe, et une sangle lui barre le flanc. Il se tient sur un peu d'herbe, la queue relevée.",
     colorier:
@@ -622,10 +655,13 @@ const NOEL: Sujet[] = [
     slug: "bonhomme-de-neige",
     nom: "un bonhomme de neige en trois boules, écharpe, chapeau haut-de-forme, nez en carotte et bras en branches",
     titre: "Coloriage bonhomme de neige à imprimer",
+    titreRecherche: "Coloriage bonhomme de neige gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit du bonhomme de neige en PDF A4 : trois boules, écharpe, chapeau haut-de-forme, nez en carotte. Contours épais, fini en 10 min, dès 3 ans.",
     intro:
       "Un bonhomme de neige en trois boules, avec son écharpe, son chapeau et sa carotte en guise de nez. Presque tout reste blanc : l'enfant ne colorie que les accessoires, et le dessin est fini en dix minutes.",
     difficulte: "tout-petit",
-    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "Le bonhomme est fait de trois boules posées dans la neige, la plus grosse en bas. Il porte un chapeau haut-de-forme cerclé d'un ruban, une écharpe dont un pan retombe sur le ventre, et deux gros boutons. Ses yeux et sa bouche sont des ronds de charbon, son nez une carotte striée, et ses bras deux branches levées, comme s'il saluait.",
     colorier:
@@ -637,10 +673,13 @@ const NOEL: Sujet[] = [
     slug: "cadeau-de-noel",
     nom: "trois paquets cadeaux empilés, du plus grand en bas au plus petit en haut, rubans et gros nœuds, un papier à rayures, un à pois, un à étoiles",
     titre: "Coloriage cadeau de Noël à imprimer",
+    titreRecherche: "Coloriage cadeau de Noël gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit de cadeaux de Noël en PDF A4 : trois paquets empilés à rayures, à pois et à étoiles, et un grand nœud au sommet. Dès 3 ans.",
     intro:
       "Trois paquets empilés, du plus grand au plus petit, ceinturés de rubans, et un grand nœud au sommet. Rayures, pois, étoiles : une couleur par paquet suffit.",
     difficulte: "tout-petit",
-    reviseLe: "2026-10-30T01:09:39+01:00", // T-009
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "Trois paquets empilés, du plus large en bas au plus petit en haut. Celui du bas est à rayures, celui du milieu à pois, celui du haut à étoiles. Chacun est ceinturé d'un ruban qui fait la croix sur le couvercle, mais seul le paquet du sommet porte un nœud, large, avec ses deux pans.",
     colorier:
@@ -652,10 +691,13 @@ const NOEL: Sujet[] = [
     slug: "boule-de-noel",
     nom: "une grosse boule de Noël suspendue à une branche de sapin, couverte de bandes, de losanges et de flocons",
     titre: "Coloriage boule de Noël à imprimer",
+    titreRecherche: "Coloriage boule de Noël gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit d'une boule de Noël en PDF A4 : bandes de losanges et de flocons, suspendue à une branche de sapin. Proche d'un mandala, dès 8 ans.",
     intro:
       "Une grosse boule suspendue à une branche de sapin, couverte de bandes, de losanges et de flocons. Chaque bande peut prendre sa couleur, et les flocons restent blancs pour trancher.",
     difficulte: "ado",
-    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "La boule est suspendue par un fil à une branche de sapin dont les aiguilles sont dessinées une à une, bourgeons compris. Son attache est striée en biais. Elle est découpée en bandes : des losanges en haut, des flocons et des points, une large frise de losanges ornés de feuillages, de nouveau des flocons, puis des arcs ; elle se termine en pointe par une petite clochette.",
     colorier:
@@ -667,10 +709,13 @@ const NOEL: Sujet[] = [
     slug: "bonnet-de-noel",
     nom: "un bonnet de Noël à pompon, bordure en fourrure, la pointe retombant sur le côté",
     titre: "Coloriage bonnet de Noël à imprimer",
+    titreRecherche: "Coloriage bonnet de Noël gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit du bonnet de Noël en PDF A4 : pointe qui retombe, bordure en fourrure et gros pompon. Trois zones, le plus simple de la série, dès 3 ans.",
     intro:
       "Un bonnet à pompon, la pointe qui retombe et la bordure en fourrure. Deux grandes zones et une petite : c'est le plus simple de la série, fait pour les plus jeunes.",
     difficulte: "tout-petit",
-    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "Un bonnet seul, sans personnage : une grande pointe molle qui retombe sur le côté, une bordure de fourrure toute en bosses et un gros pompon au bout. Deux traits suggèrent le pli du tissu. Il n'y a ni fond ni décor.",
     colorier:
@@ -682,10 +727,13 @@ const NOEL: Sujet[] = [
     slug: "traineau-du-pere-noel",
     nom: "le traîneau du Père Noël chargé de paquets empilés, caisse ornée de volutes, patins recourbés, glissant sur la neige",
     titre: "Coloriage traîneau du Père Noël à imprimer",
+    titreRecherche: "Coloriage traîneau du Père Noël gratuit à imprimer",
+    descriptionRecherche:
+      "Coloriage gratuit du traîneau du Père Noël en PDF A4 : chargé de cadeaux, il glisse la nuit sous la lune et les étoiles. Un dessin riche, dès 5 ans.",
     intro:
       "Le traîneau chargé de cadeaux, les patins recourbés glissant sur la neige. Les volutes de la caisse et les paquets empilés font un dessin riche, à colorier en plusieurs séances.",
     difficulte: "enfant",
-    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "Le traîneau glisse de nuit dans un paysage de neige : un croissant de lune, des étoiles, des sapins enneigés sur les collines. Sa caisse en bois est couverte de volutes et d'une branche de houx ; une lanterne pend à l'avant, une petite boule de Noël sur le côté, et deux coussins attendent sur la banquette. Derrière s'entassent des paquets à étoiles, à rayures ou à pois, une boîte ronde et un sac ficelé, plein lui aussi. Les patins s'enroulent en spirales.",
     colorier:
@@ -697,10 +745,13 @@ const NOEL: Sujet[] = [
     slug: "lutin-de-noel",
     nom: "un lutin de Noël souriant, oreilles pointues, bonnet à grelot, col, ceinture et chaussons pointus, tenant un marteau devant un cheval de bois",
     titre: "Coloriage lutin de Noël à imprimer",
+    titreRecherche: "Coloriage lutin de Noël gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit d'un lutin de Noël en PDF A4 : oreilles pointues, marteau à la main, devant un cheval à bascule. Bonnet rayé et grelots, dès 5 ans.",
     intro:
       "Un lutin aux oreilles pointues, le marteau à la main devant un cheval de bois. Sa tenue est découpée en petites pièces — col, ceinture, chaussons — qui appellent chacune leur couleur.",
     difficulte: "enfant",
-    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "Un lutin souriant, aux oreilles pointues, tient un marteau à côté d'un cheval à bascule. Son bonnet est rayé, bordé de zigzags, et finit par un grelot. Il porte un col à pointes, une veste boutonnée, une large ceinture à boucle, un collant rayé et des chaussons pointus ornés de grelots. Le cheval a une selle, un étrier, une bride, une crinière et une robe à pois.",
     colorier:
@@ -712,10 +763,13 @@ const NOEL: Sujet[] = [
     slug: "buche-de-noel",
     nom: "une bûche de Noël sur un plat, écorce en crème striée, décorée de houx et de champignons en meringue",
     titre: "Coloriage bûche de Noël à imprimer",
+    titreRecherche: "Coloriage bûche de Noël gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit d'une bûche de Noël en PDF A4 : écorce striée, houx et petits champignons sur son plat. En chocolat ou en framboise, dès 5 ans.",
     intro:
       "Une bûche sur son plat, l'écorce striée, garnie de houx et de petits champignons. À colorier en chocolat ou en framboise, selon celle qu'on mangera à Noël.",
     difficulte: "enfant",
-    reviseLe: "2026-10-30T01:09:39+01:00", // T-009
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "Une bûche roulée, vue de biais sur un plat ovale. Sa tranche montre une spirale ; le dessus est strié comme une écorce, avec un nœud de bois. Elle est garnie de branches de houx aux baies rondes et de petits champignons. Le bord du plat est décoré de feuilles et de volutes.",
     colorier:
@@ -727,10 +781,13 @@ const NOEL: Sujet[] = [
     slug: "couronne-de-noel",
     nom: "une couronne de Noël à suspendre à la porte, sans bougies, en branches de sapin aux aiguilles dessinées une à une, pommes de pin, baies de houx et un grand nœud en bas",
     titre: "Coloriage couronne de Noël à imprimer",
+    titreRecherche: "Coloriage couronne de Noël gratuit à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriage gratuit d'une couronne de Noël en PDF A4 : branches de sapin, pommes de pin, houx et grand nœud. Aiguilles une à une, pour les grands, dès 8 ans.",
     intro:
       "Une couronne de branches de sapin, garnie de pommes de pin, de baies de houx et d'un grand nœud. Les aiguilles sont dessinées une à une : c'est le coloriage le plus long de la série, pour les grands.",
     difficulte: "ado",
-    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "Une couronne de branches de sapin, ouverte au centre, sans bougies. Les aiguilles sont dessinées une à une sur tout le tour. Des pommes de pin aux écailles détaillées et des feuilles de houx avec leurs baies sont réparties dans les branches. En bas, un grand nœud laisse retomber deux longs rubans.",
     colorier:
@@ -742,10 +799,13 @@ const NOEL: Sujet[] = [
     slug: "chaussette-de-noel",
     nom: "une chaussette de Noël suspendue à la cheminée, large revers blanc uni laissé vide, un sucre d'orge et un ourson qui dépassent",
     titre: "Coloriage chaussette de Noël à imprimer",
+    titreRecherche: "Coloriage chaussette de Noël gratuit à imprimer",
+    descriptionRecherche:
+      "Coloriage gratuit d'une chaussette de Noël en PDF A4 : pendue à la cheminée, un ourson et un sucre d'orge en dépassent. Revers pour un prénom, dès 3 ans.",
     intro:
       "Une chaussette pendue à la cheminée, d'où dépassent un sucre d'orge et un ourson. Le revers est assez large pour y écrire son prénom avant de la colorier.",
     difficulte: "tout-petit",
-    reviseLe: "2026-10-29T12:45:38+01:00", // T-007
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     dessin:
       "La chaussette pend devant une cheminée en briques. Son revers est large, uni et laissé vide. Le reste est découpé en bandes : des étoiles et des points, puis des points seuls, avec la pointe et le talon à part. Un ourson et un sucre d'orge dépassent par le haut.",
     colorier:
@@ -780,12 +840,15 @@ export const THEMES: Theme[] = [
     slug: "noel",
     nom: "Noël",
     titre: "Coloriages de Noël à imprimer",
+    titreRecherche: "Coloriages de Noël gratuits à imprimer · Trait de Famille",
+    descriptionRecherche:
+      "Coloriages de Noël gratuits en PDF A4 : sapin, Père Noël, renne, bonhomme de neige, bûche, chaussette. Du bonnet des tout-petits à la couronne des grands.",
     description:
       "Des coloriages de Noël gratuits à imprimer en A4 : sapin, Père Noël, renne, bonhomme de neige, bûche et chaussette. Du bonnet pour les tout-petits à la couronne pour les grands, contours nets et zones fermées.",
     excerpt:
       "Du sapin décoré au traîneau chargé de cadeaux : des dessins au trait pour patienter jusqu'au 25.",
     sujets: NOEL,
-    reviseLe: "2026-10-30T01:32:37+01:00", // T-008
+    reviseLe: "2026-11-15T21:45:03+01:00", // T-013
     guide: {
       parAge: {
         "tout-petit":

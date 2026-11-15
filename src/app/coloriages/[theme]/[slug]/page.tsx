@@ -62,15 +62,20 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
         ]
       : undefined;
 
+  // Ce que montre le résultat de recherche : distinct du H1 et du texte
+  // visible quand la fiche le précise, inchangé sinon.
+  const titre = sujet.titreRecherche ?? sujet.titre;
+  const description = sujet.descriptionRecherche ?? sujet.intro;
+
   return {
-    title: sujet.titre,
-    description: sujet.intro,
+    title: sujet.titreRecherche ? { absolute: sujet.titreRecherche } : sujet.titre,
+    description,
     alternates: { canonical: `/coloriages/${themeSlug}/${slug}` },
     // Remplace l'openGraph du layout racine au lieu de s'y fondre : ce qu'il
     // doit en garder est répété ici.
     openGraph: {
-      title: sujet.titre,
-      description: sujet.intro,
+      title: titre,
+      description,
       images: image,
       siteName: SITE_NAME,
       locale: "fr_FR",
@@ -78,8 +83,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: sujet.titre,
-      description: sujet.intro,
+      title: titre,
+      description,
       images: image,
     },
   };
