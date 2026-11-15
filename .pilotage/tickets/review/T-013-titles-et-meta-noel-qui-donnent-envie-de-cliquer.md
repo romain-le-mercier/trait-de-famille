@@ -36,13 +36,23 @@ title servi « Coloriage couronne de Noël à imprimer · Trait de Famille », m
 
 ## Critère de fin (vérifiable par le dev, seul)
 
-- [ ] Sur les 13 URL Noël (build de prod local, puis à l'origine Coolify après MEP) : `<title>` contient le sujet et
+- [x] Sur les 13 URL Noël (build de prod local, puis à l'origine Coolify après MEP) : `<title>` contient le sujet et
       « gratuit », ≤ 65 caractères ; `meta description` ≤ 155 caractères, contient « gratuit » et « A4 » ou « PDF » ;
       13 titles distincts, 13 metas distinctes (commande `sort | uniq -d` vide jointe).
-- [ ] H1, texte visible, `alt`, JSON-LD (`ImageObject`, `ItemList`, `BreadcrumbList`), canonical : **identiques** avant
+      **Preuve (build de prod local, `node:20`, UA Googlebot, 2026-11-15)** : 13 × 200 ; titles de 47 à 65 car., tous
+      avec « gratuit » ; metas de 134 à 155 car., toutes avec « gratuit », « PDF » et « A4 ». `sort titles.txt | uniq -d`
+      → vide ; `sort descs.txt | uniq -d` → vide ; `sort -u | wc -l` → 13 et 13. **À l'origine Coolify : à rejouer
+      après la MEP** (non faite, hors de mes droits).
+- [x] H1, texte visible, `alt`, JSON-LD (`ImageObject`, `ItemList`, `BreadcrumbList`), canonical : **identiques** avant
       et après sur ces 13 pages (diff du HTML servi hors `<head>` title/meta/og joint).
-- [ ] Les 58 autres fiches et les hubs `animaux`, `dinosaures` : `<head>` identique avant/après (diff vide joint).
-- [ ] Sitemap : toujours 86 URL.
+      **Preuve** : comparaison `main` (port 3131) contre `ticket/T-013` (port 3102), même base : pour les 13 pages,
+      `<head>` privé de title/description/og:title/og:description/twitter:title/twitter:description, corps hors scripts
+      RSC, blocs JSON-LD, `<h1>` et `<link rel=canonical>` → **aucune différence** (chemins `/_next/static/` normalisés).
+- [x] Les 58 autres fiches et les hubs `animaux`, `dinosaures` : `<head>` identique avant/après (diff vide joint).
+      **Preuve** : 60 pages, `<head>` entier et corps comparés → « 60 pages, 0 différentes ».
+- [x] Sitemap : toujours 86 URL. **Preuve** : 87 avant, 87 après (`grep -c "<loc>"`). 87 et non 86 : le guide du
+      calendrier de l'Avent (T-016) est sur `main` depuis l'écriture du ticket. Ce diff n'ajoute ni ne retire d'URL ;
+      seuls les `lastmod` des 13 pages Noël changent (point 4).
 
 ## Hors périmètre
 
@@ -65,7 +75,32 @@ Aucun. Ce projet se construit en conteneur `node:20` (Node 18 sous WSL bloque `n
 
 ## Retour dev
 
-*(rempli par le dev, en doing/ ou review/ — fait, partiellement fait, bloqué, abandonné ; ce qui s'est révélé faux dans le ticket ; ce que le PM ne peut pas voir)*
+**Fait.** Commit `2272298`, branche `ticket/T-013`, non poussée, non déployée.
+
+Revue adversariale du 2026-11-15 (niveau léger, reviewer-seo seul) : 2 défauts rapportés, 0 retenu, 1 mineur noté,
+0 hérité, 1 réfuté.
+- Mineur : `lastmod` des 13 pages posé au 2026-11-15T20:45 (heure du build local), avant la MEP. Si la MEP glisse,
+  recaler les 13 `reviseLe` `// T-013` de `themes.ts` au jour réel, et ne plus les avancer sans changement de contenu.
+- Réfuté : « remettre le suffixe de marque sur la chaussette ». Le suffixe « · Trait de Famille » fait 19 caractères,
+  pas 18 : 47 + 19 = 66 > 65. Le suffixe est retiré sur la chaussette et le traîneau seulement, faute de place.
+
+Ce qui a été fait :
+- `Sujet` et `Theme` (`src/lib/coloriages/themes.ts`) prennent deux champs facultatifs : `titreRecherche` (title servi
+  tel quel, `absolute`, suffixe compris quand il tient) et `descriptionRecherche`. Les deux gabarits (`[theme]/page.tsx`,
+  `[theme]/[slug]/page.tsx`) les utilisent pour title, description, og et twitter ; absents ⇒ comportement inchangé.
+  H1, intro, alt, JSON-LD et nom de l'`ItemList` restent sur `titre`/`intro`.
+- Les 12 fiches Noël et le hub `noel` sont remplis. Chaque meta reprend un détail déjà écrit dans le texte de la fiche
+  (âge annoncé, éléments du dessin), et rien d'autre. « PDF A4 » est vrai : bouton « Télécharger en PDF (A4) ».
+- Point 4 : T-010 étant sur `main`, les 13 `reviseLe` passent au 2026-11-15 (voir le mineur ci-dessus).
+
+Ce qui s'est révélé faux dans le ticket : le sitemap compte 87 URL et non 86 (guide T-016).
+
+Ce que le PM ne voit pas :
+- Le bench local publie les 70 sujets en base jetable (prod : selon publication réelle) ; les images y sont absentes.
+- `og:title` porte désormais le suffixe de marque là où le title l'a (avant : `titre` seul, sans suffixe).
+- Après la MEP : rejouer à l'origine `51.210.6.44` le title et la meta des 13 URL. Ensuite, demander la réindexation
+  des 13 URL dans GSC pour que le nouveau snippet apparaisse avant la mi-décembre. C'est un geste de console : le chef
+  d'orchestre s'il a l'accès, sinon Romain.
 
 ## Validation PM
 
