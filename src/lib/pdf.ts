@@ -81,7 +81,8 @@ export async function buildColoringCardPdf(
     y: 0,
     width: pli - 6,
     height: pageHeight,
-    piedDePage: { x: pli / 2 },
+    // Le pied de page est au dos : rien à réserver sous le dessin.
+    piedDePage: { x: pli / 2, reserve: 0 },
   });
 
   doc.setDrawColor(215, 210, 222);
@@ -106,14 +107,14 @@ async function dessinerPage(
     y: number;
     width: number;
     height: number;
-    piedDePage?: { x: number };
+    piedDePage?: { x: number; reserve: number };
   },
 ): Promise<void> {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const cadre = zone ?? { x: 0, y: 0, width: pageWidth, height: pageHeight };
   const margin = 10;
-  const footer = 8;
+  const footer = zone?.piedDePage?.reserve ?? 8;
 
   const maxWidth = cadre.width - margin * 2;
   const maxHeight = cadre.height - margin * 2 - footer;

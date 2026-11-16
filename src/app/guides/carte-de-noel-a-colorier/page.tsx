@@ -64,11 +64,12 @@ export default async function Page() {
     <GuideArticle guide={guide}>
       <p>
         Une carte de vœux que l&apos;enfant colorie lui-même vaut toutes les
-        cartes du commerce, surtout pour des grands-parents. Chacun des douze
-        coloriages de Noël du site existe en carte à plier : une feuille A4 en
-        paysage, le dessin sur la moitié droite, qui devient la face une fois la
-        feuille pliée en deux. Le dos et l&apos;intérieur restent blancs, pour
-        écrire. C&apos;est gratuit, sans compte.
+        cartes du commerce, surtout pour des grands-parents. Chacun des{" "}
+        {liees.length} coloriages de Noël du site existe en carte à plier : une
+        feuille A4 en paysage, le dessin sur la moitié droite, qui devient la
+        face une fois la feuille pliée en deux. L&apos;intérieur reste blanc,
+        pour écrire, et le dos ne porte qu&apos;une petite ligne avec le nom du
+        site. C&apos;est gratuit, sans compte.
       </p>
 
       <h2>Imprimer la carte</h2>
@@ -126,7 +127,7 @@ export default async function Page() {
         </li>
       </ul>
 
-      <h2>Les 12 cartes de Noël à colorier</h2>
+      <h2>Les {liees.length} cartes de Noël à colorier</h2>
       <p>
         Chaque dessin ouvre sa fiche, où se trouve le bouton « Carte à plier
         (PDF) ». Les plus simples conviennent dès 3 ans, les plus chargés aux
