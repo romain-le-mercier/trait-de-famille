@@ -185,7 +185,7 @@ export async function supprimer(slug: string): Promise<void> {
   await getPool().query("DELETE FROM coloriages WHERE slug = $1", [slug]);
 }
 
-export interface FicheNoel {
+export interface FicheTheme {
   slug: string;
   titre: string;
   href: string;
@@ -193,30 +193,32 @@ export interface FicheNoel {
   fichier: string;
 }
 
+export type FicheNoel = FicheTheme;
+
 /**
- * Les fiches Noël publiées, dans l'ordre éditorial du thème, pour les liens
- * posés hors du thème (accueil, fiches des autres thèmes). Lues en base : un
- * dessin dépublié ne doit pas devenir un lien mort.
+ * Les fiches publiées d'un thème, dans l'ordre éditorial du thème, pour les
+ * liens posés hors du thème (accueil, fiches des autres thèmes). Lues en base :
+ * un dessin dépublié ne doit pas devenir un lien mort.
  *
  * Une base qui ne répond pas rend la dernière liste lue (vide avant la
  * première lecture) plutôt qu'une erreur : ces liens ne valent pas une page
  * d'accueil en 500, et Google ne doit pas les perdre le temps d'une coupure.
  */
-let dernieresFichesNoel: FicheNoel[] = [];
+const dernieresFiches = new Map<string, FicheTheme[]>();
 
-/** Au-delà, l'accueil n'attend plus la base : il sert la dernière liste lue. */
-const DELAI_FICHES_NOEL_MS = 1500;
+/** Au-delà, la page n'attend plus la base : elle sert la dernière liste lue. */
+const DELAI_FICHES_MS = 1500;
 
-export async function listerFichesNoel(): Promise<FicheNoel[]> {
-  const theme = getTheme("noel");
+export async function listerFichesTheme(themeSlug: string): Promise<FicheTheme[]> {
+  const theme = getTheme(themeSlug);
   if (!theme) return [];
   let publies: Map<string, string>;
   try {
     let minuteur: ReturnType<typeof setTimeout> | undefined;
     const delai = new Promise<never>((_, refuser) => {
       minuteur = setTimeout(
-        () => refuser(new Error(`pas de réponse en ${DELAI_FICHES_NOEL_MS} ms`)),
-        DELAI_FICHES_NOEL_MS,
+        () => refuser(new Error(`pas de réponse en ${DELAI_FICHES_MS} ms`)),
+        DELAI_FICHES_MS,
       );
     });
     try {
@@ -230,10 +232,10 @@ export async function listerFichesNoel(): Promise<FicheNoel[]> {
       clearTimeout(minuteur);
     }
   } catch (error) {
-    console.error("Fiches Noël illisibles en base :", error);
-    return dernieresFichesNoel;
+    console.error(`Fiches « ${theme.slug} » illisibles en base :`, error);
+    return dernieresFiches.get(theme.slug) ?? [];
   }
-  dernieresFichesNoel = theme.sujets
+  const fiches = theme.sujets
     .filter((sujet) => publies.has(sujet.slug))
     .map((sujet) => ({
       slug: sujet.slug,
@@ -241,5 +243,10 @@ export async function listerFichesNoel(): Promise<FicheNoel[]> {
       href: `/coloriages/${theme.slug}/${sujet.slug}`,
       fichier: nomFichierImage(sujet.slug, publies.get(sujet.slug)!),
     }));
-  return dernieresFichesNoel;
+  dernieresFiches.set(theme.slug, fiches);
+  return fiches;
+}
+
+export function listerFichesNoel(): Promise<FicheNoel[]> {
+  return listerFichesTheme("noel");
 }

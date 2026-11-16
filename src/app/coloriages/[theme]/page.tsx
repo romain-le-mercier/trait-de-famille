@@ -21,6 +21,14 @@ const NIVEAUX: DetailLevel[] = ["tout-petit", "enfant", "ado"];
 /** Thèmes dont le hub propose tous ses dessins en un PDF (pari T-015 : Noël d'abord). */
 const THEMES_EN_PACK = new Set(["noel"]);
 
+/**
+ * Les autres thèmes que lie un hub (pari T-014) : le hub Noël, que Google
+ * recrawle, mène aux hubs dinosaures et animaux.
+ */
+const AUTRES_THEMES: Record<string, string[]> = {
+  noel: ["dinosaures", "animaux"],
+};
+
 export const dynamic = "force-dynamic";
 
 interface Params {
@@ -94,6 +102,10 @@ export default async function ThemePage({ params }: Params) {
       fichier: nomFichierImage(sujet.slug, publies.get(sujet.slug)!),
     }));
   if (sujets.length === 0) notFound();
+
+  const autresThemes = (AUTRES_THEMES[theme.slug] ?? [])
+    .map((slug) => getTheme(slug))
+    .filter((autre): autre is NonNullable<typeof autre> => !!autre);
 
   const guide = theme.guide;
   const parAge = guide
@@ -235,6 +247,24 @@ export default async function ThemePage({ params }: Params) {
             </ul>
           </section>
         </div>
+      )}
+
+      {autresThemes.length > 0 && (
+        <section className="mt-14">
+          <h2 className="font-display text-2xl font-bold">D&apos;autres coloriages</h2>
+          <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+            {autresThemes.map((autre) => (
+              <li key={autre.slug}>
+                <Link
+                  href={`/coloriages/${autre.slug}`}
+                  className="font-semibold text-grape hover:underline"
+                >
+                  {autre.titre}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="mt-12">

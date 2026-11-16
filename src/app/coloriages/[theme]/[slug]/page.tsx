@@ -17,8 +17,10 @@ import {
 import {
   getColoriage,
   listerFichesNoel,
+  listerFichesTheme,
   listerPublies,
   type FicheNoel,
+  type FicheTheme,
 } from "@/lib/server/coloriages";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
@@ -37,6 +39,31 @@ function choisirFichesNoel(fiches: FicheNoel[], slug: string): FicheNoel[] {
   return Array.from(
     { length: FICHES_NOEL_PAR_PAGE },
     (_, i) => fiches[(decalage + i) % fiches.length],
+  );
+}
+
+/**
+ * Les fiches dinosaures liées depuis une fiche Noël (pari T-014). La fiche
+ * Noël de rang i prend une tranche consécutive de la liste des dinosaures, à
+ * partir de i × n : les tranches se suivent et font le tour de la liste, si
+ * bien que, avec n tel que (fiches Noël × n) ≥ 2 × dinosaures, chaque fiche
+ * dinosaure reçoit au moins deux liens. n reste entre 4 et 6.
+ */
+function choisirFichesDinosaures(
+  dinosaures: FicheTheme[],
+  fichesNoel: FicheTheme[],
+  slug: string,
+): FicheTheme[] {
+  const rang = fichesNoel.findIndex((fiche) => fiche.slug === slug);
+  if (rang < 0 || dinosaures.length === 0) return [];
+  const parPage = Math.min(
+    dinosaures.length,
+    6,
+    Math.max(4, Math.ceil((2 * dinosaures.length) / fichesNoel.length)),
+  );
+  return Array.from(
+    { length: parPage },
+    (_, i) => dinosaures[(rang * parPage + i) % dinosaures.length],
   );
 }
 
@@ -124,10 +151,15 @@ export default async function ColoriagePage({ params }: Params) {
       !!section.texte,
   );
 
-  const noel =
+  const [fichesNoel, fichesDinosaures] = await Promise.all([
+    listerFichesNoel(),
+    theme.slug === "noel" ? listerFichesTheme("dinosaures") : Promise.resolve([]),
+  ]);
+  const noel = theme.slug === "noel" ? [] : choisirFichesNoel(fichesNoel, slug);
+  const dinosaures =
     theme.slug === "noel"
-      ? []
-      : choisirFichesNoel(await listerFichesNoel(), slug);
+      ? choisirFichesDinosaures(fichesDinosaures, fichesNoel, slug)
+      : [];
 
   // ImageObject : c'est l'image qui est le contenu de cette page, et c'est par
   // Google Images que passe l'essentiel du trafic sur ces requêtes.
@@ -294,6 +326,36 @@ export default async function ColoriagePage({ params }: Params) {
           </h2>
           <ul className="mt-5 grid gap-4 grid-cols-2 lg:grid-cols-6">
             {noel.map((fiche) => (
+              <Card as="li" key={fiche.slug} className="p-0">
+                <Link
+                  href={fiche.href}
+                  className="flex h-full flex-col p-3 transition-colors hover:bg-paper"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/coloriages/image/${fiche.fichier}`}
+                    alt={fiche.titre}
+                    loading="lazy"
+                    className="aspect-square w-full rounded-tile border-2 border-line bg-white object-contain"
+                  />
+                  <span className="mt-2 text-sm font-bold">{fiche.titre}</span>
+                </Link>
+              </Card>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {dinosaures.length > 0 && (
+        <section className="mt-14">
+          <h2 className="font-display text-2xl font-bold">
+            D&apos;autres coloriages :{" "}
+            <Link href="/coloriages/dinosaures" className="hover:text-grape">
+              les dinosaures
+            </Link>
+          </h2>
+          <ul className="mt-5 grid gap-4 grid-cols-2 lg:grid-cols-6">
+            {dinosaures.map((fiche) => (
               <Card as="li" key={fiche.slug} className="p-0">
                 <Link
                   href={fiche.href}
