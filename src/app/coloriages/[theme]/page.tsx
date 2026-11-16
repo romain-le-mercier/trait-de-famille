@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { Badge, Card } from "@/components/ui/Card";
 import { SectionTitle } from "@/components/marketing/SectionTitle";
 import { EtSiCetaitToi } from "@/components/coloriages/EtSiCetaitToi";
+import { TelechargerPack } from "@/components/coloriages/TelechargerPack";
 import { TexteAvecLien } from "@/components/coloriages/TexteAvecLien";
 import {
   ageConseille,
@@ -16,6 +17,9 @@ import { listerPublies } from "@/lib/server/coloriages";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
 const NIVEAUX: DetailLevel[] = ["tout-petit", "enfant", "ado"];
+
+/** Thèmes dont le hub propose tous ses dessins en un PDF (pari T-015 : Noël d'abord). */
+const THEMES_EN_PACK = new Set(["noel"]);
 
 export const dynamic = "force-dynamic";
 
@@ -145,6 +149,19 @@ export default async function ThemePage({ params }: Params) {
         title={theme.titre}
         subtitle={theme.description}
       />
+
+      {THEMES_EN_PACK.has(theme.slug) && (
+        <div className="mb-8 flex justify-center">
+          <TelechargerPack
+            theme={theme.slug}
+            nomFichier={`coloriages-${theme.slug}-a-imprimer`}
+            dessins={sujets.map((sujet) => ({
+              src: `/coloriages/image/${sujet.fichier}`,
+              titre: sujet.titre,
+            }))}
+          />
+        </div>
+      )}
 
       <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {sujets.map((sujet) => (
