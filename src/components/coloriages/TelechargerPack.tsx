@@ -12,7 +12,9 @@ import { buildColoringPackPdf } from "@/lib/pdf";
  * dans l'ordre de la grille du hub.
  *
  * Fabriqué dans le navigateur à partir des images déjà servies, avec la mise
- * en page du PDF d'une fiche. Une image est décodée à la fois puis libérée.
+ * en page du PDF d'une fiche. Une image est décodée à la fois (le temps d'en
+ * lire les dimensions) puis libérée ; le PDF, lui, garde les 12 fichiers
+ * compressés jusqu'à la fin : quelques Mo pour ce thème.
  * Si une image manque, aucun PDF ne sort : un cahier troué sans prévenir
  * serait pire qu'un message d'erreur.
  */
@@ -35,24 +37,33 @@ export function TelechargerPack({
     suivre("coloriage-telecharge", { format: "pack", slug: theme });
     setEnCours(0);
     setErreur(null);
-    let dessinCourant = "";
+    // Renseigné seulement quand c'est une image qui manque : une panne de
+    // jsPDF ou du téléchargement ne doit pas accuser un dessin sain.
+    let dessinEnEchec: string | null = null;
     try {
       const pdf = await buildColoringPackPdf(dessins.length, async (index) => {
         const dessin = dessins[index];
-        dessinCourant = dessin.titre;
         setEnCours(index + 1);
-        const reponse = await fetch(dessin.src);
-        if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`);
-        const image = await reponse.blob();
-        const bitmap = await loadBitmap(image);
-        const { width, height } = bitmap;
-        bitmap.close?.();
-        return { image, width, height };
+        try {
+          const reponse = await fetch(dessin.src);
+          if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`);
+          const image = await reponse.blob();
+          const bitmap = await loadBitmap(image);
+          const { width, height } = bitmap;
+          bitmap.close?.();
+          return { image, width, height };
+        } catch (cause) {
+          dessinEnEchec = dessin.titre;
+          throw cause;
+        }
       });
       downloadBlob(pdf, `${nomFichier}.pdf`);
-    } catch {
+    } catch (cause) {
+      console.error("[pack PDF]", cause);
       setErreur(
-        `Le dessin « ${dessinCourant} » n'a pas pu être chargé : aucun PDF n'a été créé. Réessaie dans un instant.`,
+        dessinEnEchec
+          ? `Le dessin « ${dessinEnEchec} » n'a pas pu être chargé : aucun PDF n'a été créé. Réessaie dans un instant.`
+          : "Le PDF n'a pas pu être fabriqué. Réessaie dans un instant.",
       );
     } finally {
       setEnCours(null);
