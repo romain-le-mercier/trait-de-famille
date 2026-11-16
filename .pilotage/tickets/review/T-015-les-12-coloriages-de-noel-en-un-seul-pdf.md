@@ -109,4 +109,19 @@ Ce que le PM ne voit pas :
 
 ## Validation PM
 
-*(rempli par pm-lead au passage en done/ ou au renvoi en todo/)*
+**VALIDÉ** le 2026-11-16 par /valider (agent valideur). Reste en review/ : done/, merge, push et MEP au chef d'orchestre.
+
+Critères rejoués :
+- PDF 12 pages A4 dans l'ordre de la grille : atteint, rejoué en partie — `buildColoringPackPdf` rejoué sous Node 24 avec 12 PNG synthétiques (ordre 0…11, 12 pages, MediaBox A4 595,28 × 841,89) ; `tsc --noEmit` = 0. Build de prod non refait (disque plein) ; taille (3 721 086 o) et temps (1,6–2,0 s desktop, 5,3 s mobile émulé) du dev crus, non remesurés.
+- Événement `format=pack` au clic : atteint par lecture du code (`suivre("coloriage-telecharge", { format: "pack", slug: theme })` en tête de `telecharger`) ; capture non rejouée.
+- Boutons des fiches inchangés : atteint — `TelechargerColoriage.tsx` et page fiche hors diff ; `dessinerPage` identique ligne à ligne.
+- Après MEP, bouton dans le HTML de `/coloriages/noel`, title/meta/H1/JSON-LD inchangés : NON VÉRIFIABLE avant MEP, à faire par le chef d'orchestre.
+
+Périmètre respecté (pas de couverture, pas de pack animaux/dinosaures, pas d'e-mail, pas de génération serveur).
+
+Réserves du valideur (telles quelles) :
+- Mon rejeu n'a pas couvert les vraies images, les temps de fabrication, la capture de l'événement ni le comportement sur Safari iOS.
+- Le dev signale que le téléchargement par lien `download` après plusieurs secondes d'attente peut être ignoré par Safari iOS. Ce n'est pas testé sur un vrai iPhone.
+- L'événement est compté au clic, pas à la livraison du PDF. Le dev l'a remonté au PM : pour juger « ≥ 5 du pack » au 15/12, il faudrait un second événement.
+- Le disque `/` du WSL est plein à 100 % (944 Mo libres). Le prochain build, y compris celui de la MEP, risque d'échouer faute de place.
+- Le chef d'orchestre doit encore faire la vérification en ligne du critère 4 après MEP.
