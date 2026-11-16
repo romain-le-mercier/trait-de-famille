@@ -108,3 +108,20 @@ Revue adversariale du 2026-11-16 (niveau léger, reviewer-seo seul) : 3 défauts
 ## Validation PM
 
 *(rempli par pm-lead au passage en done/ ou au renvoi en todo/)*
+
+**VALIDÉ** le 2026-11-16 par /valider (agent valideur). Reste en review/ : done/, merge, push et MEP au chef d'orchestre.
+
+Critères rejoués :
+- 4 à 6 liens dinosaures par fiche Noël : atteint (algorithme `choisirFichesDinosaures` rejoué sur `themes.ts` : 12 fiches × 4 slugs distincts ; rendu `Link` serveur, `force-dynamic`), HTML servi non relu.
+- Chaque dinosaure ≥ 2 liens : atteint (dinosaure, t-rex, diplodocus, triceratops 3 ; 18 autres 2), slugs publiés en base.
+- Hub Noël → /coloriages/dinosaures et /coloriages/animaux : atteint (bloc `AUTRES_THEMES`, lecture du diff).
+- Title/meta/H1/canonical/JSON-LD/sitemap inchangés : atteint (lecture du diff ; 86 vs 88 déclaré).
+- Temps de réponse ≤ +100 ms : non vérifiable sans build (mesure locale du ticket 17,9 → 18,2 ms ; une lecture de base cachée par thème).
+- `tsc --noEmit` et eslint : atteint, sans erreur.
+- Rejeux à l'origine Coolify : non vérifiables avant MEP.
+
+Réserves du valideur (recopiées) :
+- Je n'ai pas rejoué le build de prod. La preuve repose sur la reproduction de l'algorithme, sur le typecheck et sur la lecture du diff, pas sur le HTML servi.
+- Après la MEP, le chef d'orchestre doit rejouer à l'origine : les 4 liens par fiche, les 200 sur les 22 URL, le hub Noël et le temps de réponse.
+- Si la base ne répond pas au premier rendu après un démarrage, la page sort sans le bloc dinosaures, en 200. Le ticket le dit.
+- Le critère évoque « les 13 pages Noël » alors que le code compte 12 fiches et un hub. Le ticket est cohérent sur ce point.
