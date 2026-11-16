@@ -219,6 +219,7 @@ export default async function ColoriagePage({ params }: Params) {
               src={src}
               nomFichier={fichier.replace(/\.[a-z]+$/, "")}
               extension={fichier.replace(/^.*\./, "")}
+              carte={theme.slug === "noel"}
             />
           </div>
 

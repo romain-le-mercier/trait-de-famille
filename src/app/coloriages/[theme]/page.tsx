@@ -226,7 +226,10 @@ export default async function ThemePage({ params }: Params) {
             <ul className="mt-2 space-y-2 text-muted">
               {guide.idees.idees.map((idee) => (
                 <li key={idee}>
-                  · <TexteAvecLien texte={idee} lien={guide.idees.lien} />
+                  · <TexteAvecLien
+                    texte={idee}
+                    lien={guide.idees.liens?.find((l) => idee.includes(l.ancre))}
+                  />
                 </li>
               ))}
             </ul>

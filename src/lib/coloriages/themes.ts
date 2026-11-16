@@ -101,7 +101,7 @@ export interface GuideTheme {
   /** Ce que donne réellement le téléchargement : voir `TelechargerColoriage`. */
   imprimer: string;
   /** Des usages concrets, tirés des fiches du thème. */
-  idees: { titre: string; idees: string[]; lien?: LienDansTexte };
+  idees: { titre: string; idees: string[]; liens?: LienDansTexte[] };
 }
 
 const ANIMAUX: Sujet[] = [
@@ -859,19 +859,25 @@ export const THEMES: Theme[] = [
           "Ce sont des coloriages de motifs : des dizaines de petites zones régulières sur la boule, des aiguilles dessinées une à une sur la couronne. Il faut des crayons bien taillés et plusieurs séances ; les adultes s'y mettent aussi.",
       },
       imprimer:
-        "Chaque fiche propose deux téléchargements gratuits, sans compte. Le PDF est au format A4 : le dessin y est centré avec une marge d'un centimètre, en portrait ou en paysage selon sa forme, et une ligne discrète rappelle le nom du site en bas de page. Le second bouton donne l'image seule, pour l'imprimer à une autre taille ou la glisser dans un document. Pour garder les proportions, on imprime le PDF à 100 %, sans « ajuster à la page » ; un papier de 120 g ou plus évite que les feutres traversent.",
+        "Chaque fiche propose trois téléchargements gratuits, sans compte. Le PDF est au format A4 : le dessin y est centré avec une marge d'un centimètre, en portrait ou en paysage selon sa forme, et une ligne discrète rappelle le nom du site en bas de page. Le deuxième bouton donne l'image seule, pour l'imprimer à une autre taille ou la glisser dans un document ; le troisième, une carte de vœux à plier en deux, le dessin sur la face. Pour garder les proportions, on imprime le PDF à 100 %, sans « ajuster à la page » ; un papier de 120 g ou plus évite que les feutres traversent.",
       idees: {
         titre: "Pendant l'Avent",
         idees: [
           "Un dessin par semaine, du plus simple au plus riche : le bonnet la première semaine, le bonhomme de neige la deuxième, le sapin la troisième et le traîneau la dernière, celle de la nuit de Noël.",
           "Le sapin à remplir : affiché sur la porte de la chambre début décembre, il reçoit une boule coloriée chaque soir, comme un calendrier de l'Avent fait main.",
-          "Des cartes de vœux : la boule ou le Père Noël, coloriés puis découpés, se collent sur un carton plié en deux, l'intérieur libre pour un mot aux grands-parents.",
+          "Des cartes de vœux : chaque fiche donne aussi le dessin en carte de Noël à colorier, à imprimer et plier en deux, l'intérieur libre pour un mot aux grands-parents.",
           "La table du réveillon : une feuille sous l'assiette de chaque enfant pour patienter jusqu'au dessert, la bûche coloriée en guise de menu, une chaussette marquée au prénom de chacun.",
         ],
-        lien: {
-          ancre: "comme un calendrier de l'Avent fait main",
-          href: "/guides/calendrier-de-l-avent-coloriage",
-        },
+        liens: [
+          {
+            ancre: "comme un calendrier de l'Avent fait main",
+            href: "/guides/calendrier-de-l-avent-coloriage",
+          },
+          {
+            ancre: "carte de Noël à colorier",
+            href: "/guides/carte-de-noel-a-colorier",
+          },
+        ],
       },
     },
   },

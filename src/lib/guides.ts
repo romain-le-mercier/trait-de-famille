@@ -86,6 +86,17 @@ export const GUIDES: Guide[] = [
     updated: "2026-11-15",
     readingMinutes: 6,
   },
+  {
+    slug: "carte-de-noel-a-colorier",
+    title: "Carte de Noël à colorier à imprimer et plier",
+    heading: "Une carte de Noël à colorier, à imprimer et plier",
+    description:
+      "Une carte de Noël à colorier gratuite à imprimer : 12 dessins en PDF A4 à plier en deux, le dessin sur la face, l'intérieur libre pour un mot écrit à la main.",
+    excerpt:
+      "Douze dessins de Noël en carte à plier : on imprime, on plie, on colorie la face et on écrit dedans.",
+    updated: "2026-11-16",
+    readingMinutes: 4,
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {

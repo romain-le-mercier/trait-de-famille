@@ -53,32 +53,87 @@ export async function buildColoringPackPdf(
   return doc.output("blob");
 }
 
+/**
+ * Une carte de vœux à plier : A4 paysage plié en deux dans la largeur.
+ * Le dessin occupe la moitié droite (la face), la moitié gauche (le dos) ne
+ * porte que le pied de page, l'intérieur reste vierge pour écrire à la main.
+ * Un trait de pliage fin et clair marque le milieu.
+ */
+export async function buildColoringCardPdf(
+  image: Blob,
+  options: { width: number; height: number; label?: string },
+): Promise<Blob> {
+  const { jsPDF } = await import("jspdf");
+  const doc = new jsPDF({
+    unit: "mm",
+    format: "a4",
+    orientation: "landscape",
+    compress: true,
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const pli = pageWidth / 2;
+
+  // Marge plus large côté pli : un pliage approximatif ne doit pas mordre le dessin.
+  await dessinerPage(doc, image, options, {
+    x: pli + 6,
+    y: 0,
+    width: pli - 6,
+    height: pageHeight,
+    piedDePage: { x: pli / 2 },
+  });
+
+  doc.setDrawColor(215, 210, 222);
+  doc.setLineWidth(0.2);
+  doc.setLineDashPattern([2, 2], 0);
+  doc.line(pli, 4, pli, pageHeight - 4);
+
+  return doc.output("blob");
+}
+
+/**
+ * Pose une image centrée dans une zone de la page (toute la page par défaut),
+ * avec marge et pied de page. Le pied de page est centré sous la zone, sauf si
+ * une abscisse est imposée (la carte le met au dos, pas sous le dessin).
+ */
 async function dessinerPage(
   doc: JsPdf,
   image: Blob,
   options: { width: number; height: number; label?: string },
+  zone?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    piedDePage?: { x: number };
+  },
 ): Promise<void> {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const cadre = zone ?? { x: 0, y: 0, width: pageWidth, height: pageHeight };
   const margin = 10;
   const footer = 8;
 
-  const maxWidth = pageWidth - margin * 2;
-  const maxHeight = pageHeight - margin * 2 - footer;
+  const maxWidth = cadre.width - margin * 2;
+  const maxHeight = cadre.height - margin * 2 - footer;
   const ratio = Math.min(maxWidth / options.width, maxHeight / options.height);
   const drawWidth = options.width * ratio;
   const drawHeight = options.height * ratio;
-  const x = (pageWidth - drawWidth) / 2;
-  const y = (pageHeight - footer - drawHeight) / 2;
+  const x = cadre.x + (cadre.width - drawWidth) / 2;
+  const y = cadre.y + (cadre.height - footer - drawHeight) / 2;
 
   const dataUrl = await blobToDataUrl(image);
   doc.addImage(dataUrl, "PNG", x, y, drawWidth, drawHeight, undefined, "FAST");
 
   doc.setFontSize(7);
   doc.setTextColor(170, 165, 180);
-  doc.text(options.label ?? PIED_DE_PAGE, pageWidth / 2, pageHeight - margin / 2, {
-    align: "center",
-  });
+  doc.text(
+    options.label ?? PIED_DE_PAGE,
+    zone?.piedDePage?.x ?? cadre.x + cadre.width / 2,
+    cadre.y + cadre.height - margin / 2,
+    { align: "center" },
+  );
 }
 
 export function blobToDataUrl(blob: Blob): Promise<string> {

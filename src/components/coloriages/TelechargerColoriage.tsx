@@ -1,24 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileImage } from "lucide-react";
+import { Download, FileImage, Mail } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { suivre } from "@/lib/analytics";
 import { downloadBlob, loadBitmap } from "@/lib/image";
-import { buildColoringPdf } from "@/lib/pdf";
+import { buildColoringCardPdf, buildColoringPdf } from "@/lib/pdf";
+
+type Format = "pdf" | "image" | "carte";
 
 /**
  * Téléchargement d'un coloriage de la bibliothèque.
  *
  * Le PDF est fabriqué dans le navigateur, avec exactement le code qui sert
  * aux coloriages payants (`buildColoringPdf`) : même mise en page A4, mêmes
- * marges. Rien à générer ni à stocker côté serveur.
+ * marges. Rien à générer ni à stocker côté serveur. Avec `carte`, un
+ * troisième bouton donne le même dessin en carte de vœux à plier
+ * (`buildColoringCardPdf`).
  */
 export function TelechargerColoriage({
   slug,
   src,
   nomFichier,
   extension,
+  carte = false,
 }: {
   /** Pour la mesure : quel coloriage de la bibliothèque est téléchargé. */
   slug: string;
@@ -26,14 +31,16 @@ export function TelechargerColoriage({
   nomFichier: string;
   /** Celle du fichier réellement stocké : le modèle décide du format. */
   extension: string;
+  /** Propose aussi la carte à plier (thème Noël seulement). */
+  carte?: boolean;
 }) {
-  const [enCours, setEnCours] = useState<null | "pdf" | "image">(null);
+  const [enCours, setEnCours] = useState<null | Format>(null);
   const [erreur, setErreur] = useState<string | null>(null);
 
-  const telecharger = async (format: "pdf" | "image") => {
+  const telecharger = async (format: Format) => {
     // Compté au clic, pas à la réussite : c'est l'intention qu'on mesure.
     suivre("coloriage-telecharge", {
-      format: format === "pdf" ? "pdf" : extension,
+      format: format === "image" ? extension : format,
       slug,
     });
     setEnCours(format);
@@ -45,11 +52,14 @@ export function TelechargerColoriage({
         return;
       }
       const bitmap = await loadBitmap(image);
-      const pdf = await buildColoringPdf(image, {
-        width: bitmap.width,
-        height: bitmap.height,
-      });
+      const dimensions = { width: bitmap.width, height: bitmap.height };
       bitmap.close?.();
+      if (format === "carte") {
+        const pdf = await buildColoringCardPdf(image, dimensions);
+        downloadBlob(pdf, `${nomFichier}-carte-a-plier.pdf`);
+        return;
+      }
+      const pdf = await buildColoringPdf(image, dimensions);
       downloadBlob(pdf, `${nomFichier}.pdf`);
     } catch {
       setErreur("Le téléchargement a échoué. Réessaie dans un instant.");
@@ -80,6 +90,18 @@ export function TelechargerColoriage({
           {enCours === "image" ? "…" : extension.toUpperCase()}
         </Button>
       </div>
+      {carte && (
+        <Button
+          size="lg"
+          variant="ink"
+          className="mt-2 w-full"
+          onClick={() => void telecharger("carte")}
+          disabled={enCours !== null}
+        >
+          <Mail className="h-5 w-5" strokeWidth={2.2} />
+          {enCours === "carte" ? "Préparation…" : "Carte à plier (PDF)"}
+        </Button>
+      )}
       {erreur && (
         <p role="alert" className="mt-2 text-sm font-semibold text-error">
           {erreur}
