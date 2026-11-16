@@ -44,22 +44,24 @@ function choisirFichesNoel(fiches: FicheNoel[], slug: string): FicheNoel[] {
 
 /**
  * Les fiches dinosaures liées depuis une fiche Noël (pari T-014). La fiche
- * Noël de rang i prend une tranche consécutive de la liste des dinosaures, à
- * partir de i × n : les tranches se suivent et font le tour de la liste, si
- * bien que, avec n tel que (fiches Noël × n) ≥ 2 × dinosaures, chaque fiche
- * dinosaure reçoit au moins deux liens. n reste entre 4 et 6.
+ * Noël de rang i (ordre éditorial du thème, dans le dépôt : stable d'un crawl
+ * à l'autre, même si la base tarde ou qu'une fiche est dépubliée) prend une
+ * tranche consécutive de la liste des dinosaures publiés, à partir de i × n :
+ * les tranches se suivent et font le tour de la liste, si bien que, avec n tel
+ * que (fiches Noël × n) ≥ 2 × dinosaures, chaque fiche dinosaure reçoit au
+ * moins deux liens. n reste entre 4 et 6.
  */
 function choisirFichesDinosaures(
   dinosaures: FicheTheme[],
-  fichesNoel: FicheTheme[],
+  slugsNoel: string[],
   slug: string,
 ): FicheTheme[] {
-  const rang = fichesNoel.findIndex((fiche) => fiche.slug === slug);
+  const rang = slugsNoel.indexOf(slug);
   if (rang < 0 || dinosaures.length === 0) return [];
   const parPage = Math.min(
     dinosaures.length,
     6,
-    Math.max(4, Math.ceil((2 * dinosaures.length) / fichesNoel.length)),
+    Math.max(4, Math.ceil((2 * dinosaures.length) / slugsNoel.length)),
   );
   return Array.from(
     { length: parPage },
@@ -151,14 +153,17 @@ export default async function ColoriagePage({ params }: Params) {
       !!section.texte,
   );
 
-  const [fichesNoel, fichesDinosaures] = await Promise.all([
-    listerFichesNoel(),
-    theme.slug === "noel" ? listerFichesTheme("dinosaures") : Promise.resolve([]),
-  ]);
-  const noel = theme.slug === "noel" ? [] : choisirFichesNoel(fichesNoel, slug);
+  const noel =
+    theme.slug === "noel"
+      ? []
+      : choisirFichesNoel(await listerFichesNoel(), slug);
   const dinosaures =
     theme.slug === "noel"
-      ? choisirFichesDinosaures(fichesDinosaures, fichesNoel, slug)
+      ? choisirFichesDinosaures(
+          await listerFichesTheme("dinosaures"),
+          theme.sujets.map((sujet) => sujet.slug),
+          slug,
+        )
       : [];
 
   // ImageObject : c'est l'image qui est le contenu de cette page, et c'est par
@@ -364,7 +369,7 @@ export default async function ColoriagePage({ params }: Params) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/coloriages/image/${fiche.fichier}`}
-                    alt={fiche.titre}
+                    alt=""
                     loading="lazy"
                     className="aspect-square w-full rounded-tile border-2 border-line bg-white object-contain"
                   />
