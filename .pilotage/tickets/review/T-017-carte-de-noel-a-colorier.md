@@ -120,3 +120,19 @@ Ce que le PM ne voit pas :
   baseline 4 / 28 j au 2026-11-04. Le relevé au jour de la MEP (`conversions.js`) revient au chef d'orchestre.
 
 ## Validation PM
+
+**VALIDÉ** le 2026-11-16 par /valider (agent valideur). Reste en `review/` : done/, merge, push et MEP au chef d'orchestre.
+
+Critères rejoués :
+- Bouton « Carte à plier » 12/12 fiches Noël, 0 sur `/coloriages/animaux/chat` : NON VÉRIFIABLE en local (pas de Postgres, disque 99 %) ; code relu : seule condition `carte={theme.slug === "noel"}`.
+- PDF carte (1 page, A4 paysage, dessin moitié droite) : NON VÉRIFIABLE (pdfinfo non exécuté) ; `buildColoringCardPdf` relu, géométrie conforme (zone x = pli + 6, pied de page au dos, pli en pointillé).
+- Événement `coloriage-telecharge` `format: "carte"` + `slug` : NON VÉRIFIABLE (clic non rejoué) ; code cohérent.
+- Guide (200, un h1, 12 liens, sitemap +1, présent dans /guides) : NON VÉRIFIABLE avant MEP (`curl -sI` → 403 attendu) ; code relu conforme.
+- Lien du hub vers le guide, build/lint : atteint — `tsc --noEmit` code 0, `eslint` code 0 ; ancre « carte de Noël à colorier » via `idees.liens[]`. `next build` non relancé (disque, `.next` à root).
+- Périmètre respecté : 10 fichiers du ticket ; zone optionnelle de `dessinerPage` rétrocompatible.
+
+Réserves du valideur (recopiées) :
+- Les preuves runtime (12/12, PDF mesurés, événements, guide servi, sitemap +1) viennent du dev. Je ne les ai pas rejouées, seulement relues dans le code. Le chef d'orchestre doit les rejouer à l'origine après la MEP, avec la liste de contrôle du « Retour dev ».
+- Le disque WSL est à 99 % et un build en local peut échouer. Le dossier `.pilotage/ticket/.next` appartient en partie à root.
+- `updated: 2026-11-16` est écrit en dur dans le guide. Si la MEP glisse, le `lastmod` du sitemap sera faux.
+- Le texte de la fiche boule (« collée sur la face d'un carton plié ») n'est pas modifié, et le dev l'a signalé.
